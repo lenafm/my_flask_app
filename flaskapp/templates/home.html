@@ -3,7 +3,7 @@
   {% for post in posts %}
     <div class="article">
       <h2>{{ post.title }}</h2>
-      <p>By {{ post.author }} on {{ post.date_posted }}</p>
+      <p>By {{ post.author.name }} on {{ post.date_posted.strftime('%Y-%m-%d') }}</p>
       <p>{{ post.content }}</p>
     </div>
   {% endfor %}
