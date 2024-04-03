@@ -3,6 +3,11 @@ from flaskapp import app, db
 from flaskapp.models import BlogPost
 from flaskapp.forms import PostForm
 
+import pandas as pd
+import json
+import plotly
+import plotly.express as px
+
 
 # Route for the home page, which is where the blog posts will be shown
 @app.route("/")
@@ -30,3 +35,18 @@ def new_post():
         flash('Your post has been created!', 'success')
         return redirect(url_for('home'))
     return render_template('create_post.html', title='New Post', form=form)
+
+
+# Route to the dashboard page
+@app.route('/dashboard')
+def dashboard():
+    df = pd.DataFrame({
+        'Fruit': ['Apples', 'Oranges', 'Bananas', 'Apples', 'Oranges',
+                  'Bananas'],
+        'Amount': [4, 1, 2, 2, 4, 5],
+        'City': ['SF', 'SF', 'SF', 'Montreal', 'Montreal', 'Montreal']
+    })
+    fig = px.bar(df, x='Fruit', y='Amount', color='City',
+                 barmode='group')
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    return render_template('dashboard.html', title='My plot', graphJSON=graphJSON)
