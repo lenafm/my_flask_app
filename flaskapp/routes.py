@@ -38,18 +38,11 @@ def new_post():
     return render_template('create_post.html', title='New Post', form=form)
 
 
+# Route to the dashboard page
 @app.route('/dashboard')
 def dashboard():
-    df = pd.DataFrame({
-        'Fruit': ['Apples', 'Oranges', 'Bananas', 'Apples', 'Oranges',
-                  'Bananas'],
-        'Amount': [4, 1, 2, 2, 4, 5],
-        'City': ['SF', 'SF', 'SF', 'Montreal', 'Montreal', 'Montreal']
-    })
-    fig = px.bar(df, x='Fruit', y='Amount', color='City',
-                 barmode='group')
-    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-    return render_template('dashboard.html', title='My plot', graphJSON=graphJSON)
+    days = Day.query.all()
+    return [{'Date': day.id, 'Page views': day.views} for day in days]
 
 
 @app.before_request
