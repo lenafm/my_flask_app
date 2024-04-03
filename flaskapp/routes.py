@@ -1,7 +1,8 @@
-from flask import render_template, flash, redirect, url_for
+from flask import render_template, flash, redirect, url_for, request
 from flaskapp import app, db
-from flaskapp.models import BlogPost
+from flaskapp.models import BlogPost, IpView, Day
 from flaskapp.forms import PostForm
+import datetime
 
 import pandas as pd
 import json
@@ -37,7 +38,6 @@ def new_post():
     return render_template('create_post.html', title='New Post', form=form)
 
 
-# Route to the dashboard page
 @app.route('/dashboard')
 def dashboard():
     df = pd.DataFrame({
@@ -50,3 +50,26 @@ def dashboard():
                  barmode='group')
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template('dashboard.html', title='My plot', graphJSON=graphJSON)
+
+
+@app.before_request
+def before_request_func():
+    day_id = datetime.date.today()  # get our day_id
+    client_ip = request.remote_addr  # get the ip address of where the client request came from
+
+    query = Day.query.filter_by(id=day_id)  # try to get the row associated to the current day
+    if query.count() > 0:
+        # the current day is already in table, simply increment its views
+        current_day = query.first()
+        current_day.views += 1
+    else:
+        # the current day does not exist, it's the first view for the day.
+        current_day = Day(id=day_id, views=1)
+        db.session.add(current_day)  # insert a new day into the day table
+
+    query = IpView.query.filter_by(ip=client_ip, date_id=day_id)
+    if query.count() == 0:  # check if it's the first time a viewer from this ip address is viewing the website
+        ip_view = IpView(ip=client_ip, date_id=day_id)
+        db.session.add(ip_view)  # insert into the ip_view table
+
+    db.session.commit()  # commit all the changes to the database
