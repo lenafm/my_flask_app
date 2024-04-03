@@ -23,3 +23,20 @@ class BlogPost(db.Model):
 
     def __repr__(self):
         return f"BlogPost('{self.title}', '{self.date_posted}')"
+
+
+class Day(db.Model):
+    # __tablename__ = 'day' # if you wanted to, you could change the default table name here
+    id = db.Column(db.Date, primary_key=True)
+    views = db.Column(db.Integer)
+
+    def __repr__(self):
+        return f"Day('{self.id}', '{self.views}')"
+
+
+class IpView(db.Model):
+    ip = db.Column(db.String(20), primary_key=True)
+    date_id = db.Column(db.Date, db.ForeignKey('day.id'), primary_key=True)
+
+    def __repr__(self):
+        return f"IpView('{self.ip}', '{self.date_id}')"
