@@ -42,7 +42,12 @@ def new_post():
 @app.route('/dashboard')
 def dashboard():
     days = Day.query.all()
-    return [{'Date': day.id, 'Page views': day.views} for day in days]
+    df = pd.DataFrame([{'Date': day.id, 'Page views': day.views} for day in days])
+
+    fig = px.bar(df, x='Date', y='Page views')
+
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    return render_template('dashboard.html', title='Page views per day', graphJSON=graphJSON)
 
 
 @app.before_request
