@@ -1,5 +1,5 @@
 .idea/
 .DS_Store
 __pycache__/
-instance/
+#instance/
 *config.py
