@@ -11,6 +11,11 @@ import plotly.express as px
 import matplotlib as plt
 from io import BytesIO
 import base64
+from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
+from sklearn.cluster import KMeans
+import seaborn as sns
+
 
 
 # Route for the home page, which is where the blog posts will be shown
@@ -62,8 +67,8 @@ def data():
     return render_template('data_table.html', data=data)
 
 
-@app.route('/chart')
-def chart():
+@app.route('/chart_1')
+def chart_1():
     query_results = UkData.query.all()
     df = pd.DataFrame([{
         'House Ownership': item.c11HouseOwned, 
@@ -79,6 +84,70 @@ def chart():
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
     
     return render_template('chart_1.html', title='Far-Right/Anti-System Thinking vs Age and Wealth Across Countries', graphJSON=graphJSON)
+
+
+@app.route('/cluster_analysis')
+def cluster_analysis():
+    query_results = UkData.query.all()
+    df = pd.DataFrame([
+        {
+            'House Ownership': item.c11HouseOwned, 
+            'Country': item.country, 
+            'Turnout': item.Turnout19,
+            'ConVote19': item.ConVote19,
+            'LabVote19': item.LabVote19,
+            'LDVote19': item.LDVote19,
+            'SNPVote19': item.SNPVote19,
+            'PCVote19': item.PCVote19,
+            'UKIPVote19': item.UKIPVote19,
+            'GreenVote19': item.GreenVote19,
+            'BrexitVote19': item.BrexitVote19,
+            'TotalVote19': item.TotalVote19,
+            'c11PopulationDensity': item.c11PopulationDensity,
+            'c11Female': item.c11Female,
+            'c11FulltimeStudent': item.c11FulltimeStudent,
+            'c11Retired': item.c11Retired,
+            'c11HouseholdMarried': item.c11HouseholdMarried
+        } for item in query_results
+    ])
+    
+
+    # Separate numeric and categorical columns
+    numeric_cols = df.select_dtypes(include=['number']).columns
+    categorical_cols = df.select_dtypes(exclude=['number']).columns
+
+    # Impute numeric columns using median
+    numeric_imputer = SimpleImputer(strategy='median')
+    df[numeric_cols] = numeric_imputer.fit_transform(df[numeric_cols])
+
+    # Impute categorical columns using the most frequent value
+    categorical_imputer = SimpleImputer(strategy='most_frequent')
+    df[categorical_cols] = categorical_imputer.fit_transform(df[categorical_cols])
+
+    # Standardize the numeric data
+    scaler = StandardScaler()
+    df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
+
+    # Perform K-means clustering
+    kmeans = KMeans(n_clusters=5, random_state=0)
+    clusters = kmeans.fit_predict(df[numeric_cols])  # Only cluster on numeric data
+
+    df['Cluster'] = clusters
+    
+    # Create a Plotly figure
+    fig = px.scatter(df, x='c11PopulationDensity', y='Turnout', color='Cluster', 
+                     labels={"color": "Cluster"},
+                     title="Cluster Visualization by Population Density and Voter Turnout")
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+    return render_template('cluster.html', graphJSON=graphJSON)
+
+
+
+
+
+
+
 
 # route to choropleth
 @app.route('/choropleth')

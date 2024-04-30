@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cluster Visualization</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Cluster Plot</h1>
+    <div id="plot"></div>
+    <script>
+        var graphs = {{graphJSON | safe}};
+        Plotly.newPlot('plot', graphs);
+    </script>
+</body>
+</html>
