@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UK Data Overview</title>
-</head>
-<body>
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div id="table-container" style="overflow: auto; height: 800px;">
     <h1>UK Parliamentary Constituency Data</h1>
     <table border="1">
         <thead>
@@ -30,6 +27,28 @@
                 <th>Retired Population Percentage 2011</th>
                 <th>Home Ownership Percentage 2011</th>
                 <th>Married Household Percentage 2011</th>
+            </tr>
+            <tr>
+                <th>id</th>
+                <th>constituency_name</th>
+                <th>country</th>
+                <th>region</th>
+                <th>Turnout19</th>
+                <th>ConVote19</th>
+                <th>LabVote19</th>
+                <th>LDVote19</th>
+                <th>SNPVote19</th>
+                <th>PCVote19</th>
+                <th>UKIPVote19</th>
+                <th>GreenVote19</th>
+                <th>BrexitVote19</th>
+                <th>TotalVote19</th>
+                <th>c11PopulationDensity</th>
+                <th>c11Female</th>
+                <th>c11FulltimeStudent</th>
+                <th>c11Retired</th>
+                <th>c11HouseOwned</th>
+                <th>c11HouseholdMarried</th>
             </tr>
         </thead>
         <tbody>
@@ -59,5 +78,5 @@
             {% endfor %}
         </tbody>
     </table>
-</body>
-</html>
+</div>
+{% endblock %}

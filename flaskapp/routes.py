@@ -3,11 +3,14 @@ from flaskapp import app, db
 from flaskapp.models import BlogPost, IpView, Day, UkData
 from flaskapp.forms import PostForm
 import datetime
-
+from sqlalchemy import inspect
 import pandas as pd
 import json
 import plotly
 import plotly.express as px
+import matplotlib as plt
+from io import BytesIO
+import base64
 
 
 # Route for the home page, which is where the blog posts will be shown
@@ -49,11 +52,33 @@ def dashboard():
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template('dashboard.html', title='Page views per day', graphJSON=graphJSON)
 
+
 # route to db just to see what's in there
 @app.route('/data')
 def data():
-    data = UkData.query.limit(10).all()  
+    data = UkData.query.limit(20).all()  
+    mapper = inspect(UkData)
+    var_name = [column.key for column in mapper.columns]
     return render_template('data_table.html', data=data)
+
+
+@app.route('/chart')
+def chart():
+    query_results = UkData.query.all()
+    df = pd.DataFrame([{
+        'House Ownership': item.c11HouseOwned, 
+        'Country': item.country, 
+        'Turnout': item.Turnout19
+        } for item in query_results])
+
+    fig = px.scatter(df, x='House Ownership', color = 'Country', labels={
+        "Turnout": "Turnout 2019",
+        "House Ownership": "House Ownership (%)"
+        }, title='Far-Right/Anti-System Thinking vs Age and Wealth Across Countries')
+
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    
+    return render_template('chart_1.html', title='Far-Right/Anti-System Thinking vs Age and Wealth Across Countries', graphJSON=graphJSON)
 
 # route to choropleth
 @app.route('/choropleth')
@@ -61,20 +86,17 @@ def choropleth():
     return render_template('choropleth.html')
 
 # route to choroplet data for JSON data for dynamic map updates
-@app.route('/choropleth/data', methods=['GET'])
-def get_choropleth_data():
-    # Get filters from query parameters
+@app.route('/choropleth/data', methods=['GET']) 
+def get_choropleth_data(): # I THINK THIS IS WRONG?????
     country = request.args.get('country', default=None)
     data_type = request.args.get('type', default='vote')  # 'vote', 'density', 'retired', etc.
 
-    # Base query
+    # base query
     query = UkData.query
 
-    # Filter by country if applicable
     if country:
         query = query.filter_by(country=country)
 
-    # Select data based on type
     if data_type == 'vote':
         # Example of complex calculation for dominant party (simplified here)
         data = [{
@@ -88,7 +110,8 @@ def get_choropleth_data():
         attribute_map = {
             'density': 'c11PopulationDensity',
             'retired': 'c11Retired',
-            # Add other demographic attributes here
+            'home_ownership': 'c11HouseOwned',
+            'female': 'c11Female',
         }
         attribute = attribute_map.get(data_type)
         data = [{
