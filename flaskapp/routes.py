@@ -1,6 +1,6 @@
-from flask import render_template, flash, redirect, url_for, request
+from flask import render_template, flash, redirect, url_for, request, jsonify, request
 from flaskapp import app, db
-from flaskapp.models import BlogPost, IpView, Day
+from flaskapp.models import BlogPost, IpView, Day, UkData
 from flaskapp.forms import PostForm
 import datetime
 
@@ -49,6 +49,55 @@ def dashboard():
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template('dashboard.html', title='Page views per day', graphJSON=graphJSON)
 
+# route to db just to see what's in there
+@app.route('/data')
+def data():
+    data = UkData.query.limit(10).all()  
+    return render_template('data_table.html', data=data)
+
+# route to choropleth
+@app.route('/choropleth')
+def choropleth():
+    return render_template('choropleth.html')
+
+# route to choroplet data for JSON data for dynamic map updates
+@app.route('/choropleth/data', methods=['GET'])
+def get_choropleth_data():
+    # Get filters from query parameters
+    country = request.args.get('country', default=None)
+    data_type = request.args.get('type', default='vote')  # 'vote', 'density', 'retired', etc.
+
+    # Base query
+    query = UkData.query
+
+    # Filter by country if applicable
+    if country:
+        query = query.filter_by(country=country)
+
+    # Select data based on type
+    if data_type == 'vote':
+        # Example of complex calculation for dominant party (simplified here)
+        data = [{
+            'id': item.id,
+            'name': item.constituency_name,
+            'dominant_party': 'Conservative' if item.ConVote19 > item.LabVote19 else 'Labour',  # Simplified logic
+            'value': max(item.ConVote19, item.LabVote19)  # Example calculation
+        } for item in query.all()]
+    else:
+        # Different data types for demographic data
+        attribute_map = {
+            'density': 'c11PopulationDensity',
+            'retired': 'c11Retired',
+            # Add other demographic attributes here
+        }
+        attribute = attribute_map.get(data_type)
+        data = [{
+            'id': item.id,
+            'name': item.constituency_name,
+            'value': getattr(item, attribute)
+        } for item in query.all()]
+
+    return jsonify(data)
 
 @app.before_request
 def before_request_func():

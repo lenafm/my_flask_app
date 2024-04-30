@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block content %}
+<div id="visualization">
+    <h1>UK Constituency Data Visualization</h1>
+    <div id="choropleth-map"></div>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="{{ url_for('static', filename='choropleth.js') }}"></script>
+{% endblock %}

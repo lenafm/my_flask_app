@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UK Data Overview</title>
+</head>
+<body>
+    <h1>UK Parliamentary Constituency Data</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Constituency Name</th>
+                <th>Country</th>
+                <th>Region</th>
+                <th>Turnout 2019</th>
+                <th>Conservative Votes 2019</th>
+                <th>Labour Votes 2019</th>
+                <th>Liberal Democrat Votes 2019</th>
+                <th>SNP Votes 2019</th>
+                <th>Plaid Cymru Votes 2019</th>
+                <th>UKIP Votes 2019</th>
+                <th>Green Party Votes 2019</th>
+                <th>Brexit Party Votes 2019</th>
+                <th>Total Votes 2019</th>
+                <th>Population Density 2011</th>
+                <th>Female Population Percentage 2011</th>
+                <th>Full-time Student Percentage 2011</th>
+                <th>Retired Population Percentage 2011</th>
+                <th>Home Ownership Percentage 2011</th>
+                <th>Married Household Percentage 2011</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data %}
+            <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.constituency_name }}</td>
+                <td>{{ item.country }}</td>
+                <td>{{ item.region }}</td>
+                <td>{{ item.Turnout19 }}%</td>
+                <td>{{ item.ConVote19 }}</td>
+                <td>{{ item.LabVote19 }}</td>
+                <td>{{ item.LDVote19 }}</td>
+                <td>{{ item.SNPVote19 }}</td>
+                <td>{{ item.PCVote19 }}</td>
+                <td>{{ item.UKIPVote19 }}</td>
+                <td>{{ item.GreenVote19 }}</td>
+                <td>{{ item.BrexitVote19 }}</td>
+                <td>{{ item.TotalVote19 }}</td>
+                <td>{{ item.c11PopulationDensity }}</td>
+                <td>{{ item.c11Female }}</td>
+                <td>{{ item.c11FulltimeStudent }}</td>
+                <td>{{ item.c11Retired }}</td>
+                <td>{{ item.c11HouseOwned }}</td>
+                <td>{{ item.c11HouseholdMarried }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
