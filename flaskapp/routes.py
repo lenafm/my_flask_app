@@ -71,7 +71,6 @@ def first_chart():
     fig.update_layout(title='Turnout Rate vs. Conservative Votes',
                       xaxis_title='Turnout Rate (%)',
                       yaxis_title='Conservative Votes')
-    print(fig)
     # Convert the visualization to JSON
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
     
@@ -95,8 +94,6 @@ def second_chart():
     fig = px.bar(df, x='Region', y='TotalVote19',
                 labels={'Region': 'Region', 'TotalVote19': 'Total Votes'},
                 title='Total Votes by Region')
-    print(fig)
-
     # Convert the visualization to JSON
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
