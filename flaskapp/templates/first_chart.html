@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <h1>Turnout Rate vs. Conservative Votes </h1>
+    <!-- Placeholder div for the Plotly visualization -->
+    <div id='first_chart' class='first_chart'></div>
+
+    <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+
+    <!-- JavaScript code to render the Plotly visualization -->
+    <script type='text/javascript'>
+        var graphs = {{graphJSON | safe}};
+        Plotly.plot('first_chart', graphs, {});
+    </script>
+{% endblock %}

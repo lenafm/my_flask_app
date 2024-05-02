@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <h1>Total Votes vs. Region </h1>
+    <!-- Placeholder div for the Plotly visualization -->
+    <div id='second_chart' class='second_chart'></div>
+
+    <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+
+    <!-- JavaScript code to render the Plotly visualization -->
+    <script type='text/javascript'>
+        var graphs = {{graphJSON | safe}};
+        Plotly.plot('second_chart', graphs, {});
+    </script>
+{% endblock %}
