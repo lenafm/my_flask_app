@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for, request, jsonify, request
+from flask import render_template, flash, redirect, url_for, request, jsonify, request, abort
 from flaskapp import app, db
 from flaskapp.models import BlogPost, IpView, Day, UkData
 from flaskapp.forms import PostForm
@@ -86,62 +86,94 @@ def chart_1():
     return render_template('chart_1.html', title='Far-Right/Anti-System Thinking vs Age and Wealth Across Countries', graphJSON=graphJSON)
 
 
-@app.route('/cluster_analysis')
+@app.route('/cluster_analysis', methods=['GET'])
 def cluster_analysis():
-    query_results = UkData.query.all()
+    country = request.args.get('country', default='All')
+    x_axis = request.args.get('x_axis', 'Population Density')
+
+    query = UkData.query
+    if country != 'All':
+        query = query.filter_by(country=country)
+        
+    all_columns = [
+        'id', 'constituency_name', 'country', 'region', 'Turnout19', 
+        'ConVote19', 'LabVote19', 'LDVote19', 'SNPVote19', 'PCVote19', 
+        'UKIPVote19', 'GreenVote19', 'BrexitVote19', 'TotalVote19', 
+        'c11PopulationDensity', 'c11Female', 'c11FulltimeStudent', 
+        'c11Retired', 'c11HouseOwned', 'c11HouseholdMarried'
+    ]
+
     df = pd.DataFrame([
         {
             'House Ownership': item.c11HouseOwned, 
             'Country': item.country, 
             'Turnout': item.Turnout19,
-            'ConVote19': item.ConVote19,
-            'LabVote19': item.LabVote19,
-            'LDVote19': item.LDVote19,
-            'SNPVote19': item.SNPVote19,
-            'PCVote19': item.PCVote19,
-            'UKIPVote19': item.UKIPVote19,
-            'GreenVote19': item.GreenVote19,
-            'BrexitVote19': item.BrexitVote19,
-            'TotalVote19': item.TotalVote19,
-            'c11PopulationDensity': item.c11PopulationDensity,
-            'c11Female': item.c11Female,
-            'c11FulltimeStudent': item.c11FulltimeStudent,
-            'c11Retired': item.c11Retired,
-            'c11HouseholdMarried': item.c11HouseholdMarried
-        } for item in query_results
+            'Conservative': item.ConVote19,
+            'Labour': item.LabVote19,
+            'Lib Dem': item.LDVote19,
+            'SNP': item.SNPVote19,
+            'Plaid Cymru': item.PCVote19,
+            'UKIP': item.UKIPVote19,
+            'Green': item.GreenVote19,
+            'Brexit Party': item.BrexitVote19,
+            'Total Vote': item.TotalVote19,
+            'Population Density': item.c11PopulationDensity,
+            'Female Pop %': item.c11Female,
+            'Student Pop %': item.c11FulltimeStudent,
+            'Retired Pop %': item.c11Retired,
+            'Married Pop %': item.c11HouseholdMarried
+        } for item in query.all()
     ])
-    
 
-    # Separate numeric and categorical columns
+
+    # Imputation and standardization
     numeric_cols = df.select_dtypes(include=['number']).columns
-    categorical_cols = df.select_dtypes(exclude=['number']).columns
+    df[numeric_cols] = SimpleImputer(strategy='median').fit_transform(df[numeric_cols])
+    df[numeric_cols] = StandardScaler().fit_transform(df[numeric_cols])
 
-    # Impute numeric columns using median
-    numeric_imputer = SimpleImputer(strategy='median')
-    df[numeric_cols] = numeric_imputer.fit_transform(df[numeric_cols])
-
-    # Impute categorical columns using the most frequent value
-    categorical_imputer = SimpleImputer(strategy='most_frequent')
-    df[categorical_cols] = categorical_imputer.fit_transform(df[categorical_cols])
-
-    # Standardize the numeric data
-    scaler = StandardScaler()
-    df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
-
-    # Perform K-means clustering
+    # Clustering
     kmeans = KMeans(n_clusters=5, random_state=0)
-    clusters = kmeans.fit_predict(df[numeric_cols])  # Only cluster on numeric data
-
+    clusters = kmeans.fit_predict(df[numeric_cols])
     df['Cluster'] = clusters
-    
-    # Create a Plotly figure
-    fig = px.scatter(df, x='c11PopulationDensity', y='Turnout', color='Cluster', 
-                     labels={"color": "Cluster"},
-                     title="Cluster Visualization by Population Density and Voter Turnout")
-    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
-    return render_template('cluster.html', graphJSON=graphJSON)
+    # Compute dominant party
+    party_votes = df[['Conservative', 'Labour', 'Lib Dem', 'SNP', 'Plaid Cymru', 'UKIP', 'Green', 'Brexit Party']]
+    df['Dominant Party'] = party_votes.idxmax(axis=1)
 
+    # Define party colors
+    party_colors = {
+        'Conservative': 'blue',
+        'Labour': 'red',
+        'Lib Dem': 'yellow',
+        'SNP': 'purple',
+        'Plaid Cymru': 'black',
+        'UKIP': 'purple',
+        'Green': 'green',
+        'Brexit Party': 'grey'
+    }
+
+    # First plot
+    fig1 = px.strip(df, x=x_axis, y='Dominant Party', color='Cluster', 
+                labels={"Cluster": "Cluster"},
+                title="Voter Distribution by " + x_axis + " and Dominant Party",
+                hover_data=[x_axis, 'Dominant Party'],
+                orientation='h',  
+                stripmode='overlay') 
+
+    # Second plot
+    fig2 = px.strip(df, x=x_axis, y='Cluster', color='Dominant Party',
+                color_discrete_map=party_colors,
+                labels={"Dominant Party": "Dominant Party"},
+                title="Cluster Distribution by " + x_axis,
+                hover_data=[x_axis, 'Cluster'],
+                orientation='h',
+                stripmode='overlay')
+
+    # Convert plots to JSON
+    graphJSON1 = json.dumps(fig1, cls=plotly.utils.PlotlyJSONEncoder)
+    graphJSON2 = json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+
+    return render_template('cluster.html', graphJSON1=graphJSON1, graphJSON2=graphJSON2, current_x_axis=x_axis, current_country=country)
 
 
 
@@ -154,42 +186,72 @@ def cluster_analysis():
 def choropleth():
     return render_template('choropleth.html')
 
-# route to choroplet data for JSON data for dynamic map updates
-@app.route('/choropleth/data', methods=['GET']) 
-def get_choropleth_data(): # I THINK THIS IS WRONG?????
-    country = request.args.get('country', default=None)
-    data_type = request.args.get('type', default='vote')  # 'vote', 'density', 'retired', etc.
+@app.route('/choropleth/data', methods=['GET'])
+def get_choropleth_data():
+    try:
+        country = request.args.get('country', default=None)
+        data_type = request.args.get('type', default='vote')
 
-    # base query
-    query = UkData.query
+        # Base query
+        query = UkData.query
 
-    if country:
-        query = query.filter_by(country=country)
+        if country:
+            query = query.filter_by(country=country)
+        
+        if not query.first():  # check if  query returned any data
+            abort(404, description="No data available for the given country.")
 
-    if data_type == 'vote':
-        # Example of complex calculation for dominant party (simplified here)
-        data = [{
-            'id': item.id,
-            'name': item.constituency_name,
-            'dominant_party': 'Conservative' if item.ConVote19 > item.LabVote19 else 'Labour',  # Simplified logic
-            'value': max(item.ConVote19, item.LabVote19)  # Example calculation
-        } for item in query.all()]
-    else:
-        # Different data types for demographic data
-        attribute_map = {
-            'density': 'c11PopulationDensity',
-            'retired': 'c11Retired',
-            'home_ownership': 'c11HouseOwned',
-            'female': 'c11Female',
-        }
-        attribute = attribute_map.get(data_type)
-        data = [{
-            'id': item.id,
-            'name': item.constituency_name,
-            'value': getattr(item, attribute)
-        } for item in query.all()]
+        if data_type == 'vote':
+            data = []
+            for item in query.all():
+                # dict of party and votes
+                vote_counts = {
+                    'Conservative': (item.ConVote19 or 0),
+                    'Labour': (item.LabVote19 or 0),
+                    'Liberal Democrat': (item.LDVote19 or 0),
+                    'SNP': (item.SNPVote19 or 0),
+                    'Plaid Cymru': (item.PCVote19 or 0),
+                    'UKIP': (item.UKIPVote19 or 0),
+                    'Green': (item.GreenVote19 or 0),
+                    'Brexit': (item.BrexitVote19 or 0)
+                }
+                
+                # compute party w/ maximum votes
+                dominant_party = max(vote_counts, key=vote_counts.get)
+                dominant_votes = vote_counts[dominant_party]
 
-    return jsonify(data)
+                # add to data
+                data.append({
+                    'id': item.id,
+                    'name': item.constituency_name,
+                    'dominant_party': dominant_party,
+                    'value': dominant_votes
+                })
+        else:
+            attribute_map = {
+                'density': 'c11PopulationDensity',
+                'retired': 'c11Retired',
+                'home_ownership': 'c11HouseOwned',
+                'female': 'c11Female',
+            }
+            attribute = attribute_map.get(data_type)
+            if attribute is None:
+                abort(400, description="Invalid data type provided.")
+            
+            data = [{
+                'id': item.id,
+                'name': item.constituency_name,
+                'value': getattr(item, attribute)
+            } for item in query.all()]
+
+        return jsonify(data)
+
+    except Exception as e:
+        app.logger.error('Failed to fetch data: {}'.format(str(e)))
+        response = jsonify({'error': 'Internal server error', 'message': str(e)})
+        response.status_code = 500
+        return response
+
 
 @app.before_request
 def before_request_func():

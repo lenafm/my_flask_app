@@ -17,24 +17,22 @@ document.addEventListener('DOMContentLoaded', function() {
         locationmode: 'country names',
         locations: ['England', 'Scotland', 'Wales'],  
         z: [1, 2, 3],  
-        text: ['England', 'Scotland', 'Wales'], 
+        text: ['England', 'Scotland', 'Wales'],  // Optional: Text displayed when hovering over locations
         autocolorscale: true
     }];    
 
-    // Function to update the map with fetched data
+    Plotly.newPlot('choropleth-map', initialData, layout, updateMap);
+
+
+    // Functions and event listeners
     function updateMap(dataType) {
         const url = `/choropleth/data?type=${dataType}`;
         fetch(url)
             .then(response => response.json())
             .then(data => {
-                // Update the map with fetched data
                 Plotly.react(mapDiv, data, layout);
             })
             .catch(error => console.error('Error fetching data:', error));
     }
-
-    // Call updateMap function initially with a default data type
-    updateMap('vote'); 
 });
-
 
