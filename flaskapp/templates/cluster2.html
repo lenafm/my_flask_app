@@ -7,20 +7,28 @@
     <!-- Country Buttons -->
     <div class="button-container">
         <div class="country-buttons">
-            <button onclick="window.location.href='{{ url_for('cluster_analysis_2', country='England', x_axis=current_x_axis) }}'">England</button>
-            <button onclick="window.location.href='{{ url_for('cluster_analysis_2', country='Scotland', x_axis=current_x_axis) }}'">Scotland</button>
-            <button onclick="window.location.href='{{ url_for('cluster_analysis_2', country='Wales', x_axis=current_x_axis) }}'">Wales</button>
-            <button onclick="window.location.href='{{ url_for('cluster_analysis_2', country='All', x_axis=current_x_axis) }}'">All</button>
+            {% for country_option in ['England', 'Scotland', 'Wales', 'All'] %}
+            <button onclick="window.location.href='{{ url_for('cluster_analysis_2', country=country_option, x_axis=current_x_axis) }}'"
+                    class="{{ 'selected' if country_option == current_country else '' }}">
+                {{ country_option }}
+            </button>
+            {% endfor %}
         </div>
 
     <!-- Characteristic Buttons -->
     <div class="x-axis-buttons">
-        <button onclick="window.location.href='{{ url_for('cluster_analysis_2', x_axis='Population Density', country=current_country) }}'">Population Density</button>
-        <button onclick="window.location.href='{{ url_for('cluster_analysis_2', x_axis='Female Pop %', country=current_country) }}'">Female Population %</button>
-        <button onclick="window.location.href='{{ url_for('cluster_analysis_2', x_axis='Student Pop %', country=current_country) }}'">Student Population %</button>
-        <button onclick="window.location.href='{{ url_for('cluster_analysis_2', x_axis='Retired Pop %', country=current_country) }}'">Retired Population %</button>
-        <button onclick="window.location.href='{{ url_for('cluster_analysis_2', x_axis='Married Pop %', country=current_country) }}'">Married Population %</button>
+        {% for x_axis_option in ['Population Density', 'Female Pop %', 'Student Pop %', 'Retired Pop %', 'Married Pop %'] %}
+        <button onclick="window.location.href='{{ url_for('cluster_analysis_2', x_axis=x_axis_option, country=current_country) }}'"
+                class="{{ 'selected' if x_axis_option == current_x_axis else '' }}">
+            {{ x_axis_option }}
+        </button>
+        {% endfor %}
     </div>
+</div>
+
+
+
+    
 
 
     <!-- 5) Scatter Plot Visualization -->

@@ -181,8 +181,8 @@ def cluster_analysis_1():
             num_rows = 'All'
         contested_df = df.sort_values('Margin of Contestation (%)').head(num_rows).iloc[::-1]
 
-    contested_df = contested_df[['constituency', 'Margin of Contestation (%)', 'Margin of Contestation (Absolute)', 'Dominant Party', 'Runner Up Party', 'Cluster']]
-    contested_df.columns = ['Constituency', 'Margin of Contestation (Absolute)', 'Margin of Contestation (%)', 'Dominant Party', 'Runner Up Party', 'Suggested Cluster to Target']
+    contested_df = contested_df[['constituency', 'Margin of Contestation (Absolute)', 'Margin of Contestation (%)', 'Dominant Party', 'Runner Up Party', 'Cluster']]
+    contested_df.columns = ['Constituency', 'Margin of Contestation (%)',  'Margin of Contestation (Absolute)', 'Dominant Party', 'Runner Up Party', 'Suggested Cluster to Target']
 
     table3_html = contested_df.to_html(index=False, classes='table table-striped')
 
@@ -235,12 +235,16 @@ def cluster_analysis_2():
         'Married Pop %': item.c11HouseholdMarried
     } for item in data])
 
-    # Imputation and standardization
+    # Compute dominant party after creating the DataFrame
+    party_columns = ['Conservative', 'Labour', 'Lib Dem', 'SNP', 'Plaid Cymru', 'UKIP', 'Green', 'Brexit Party']
+    df['Dominant Party'] = df[party_columns].idxmax(axis=1)
+
+    # Normalization and clustering
+    df_original = df.copy()  # Keep original values
     numeric_cols = df.select_dtypes(include=['number']).columns
     df[numeric_cols] = SimpleImputer(strategy='median').fit_transform(df[numeric_cols])
     df[numeric_cols] = StandardScaler().fit_transform(df[numeric_cols])
 
-    # Clustering
     kmeans = KMeans(n_clusters=5, random_state=0)
     clusters = kmeans.fit_predict(df[numeric_cols])
     cluster_labels = {
@@ -252,42 +256,29 @@ def cluster_analysis_2():
     }
     df['Cluster'] = clusters
     df['Cluster'] = df['Cluster'].map(cluster_labels)
+    df_original['Cluster'] = df['Cluster']  # Add cluster labels to original data for visualization
 
-    # Compute dominant party
-    party_votes = df[['Conservative', 'Labour', 'Lib Dem', 'SNP', 'Plaid Cymru', 'UKIP', 'Green', 'Brexit Party']]
-    party_votes = party_votes.apply(pd.to_numeric, errors='coerce')
-    df['Dominant Party'] = party_votes.idxmax(axis=1)
-    df['Runner Up Party'] = party_votes.apply(lambda x: x.nlargest(2).idxmin(), axis=1)
-    df['Margin of Contestation'] = party_votes.max(axis=1) - party_votes.apply(lambda x: x.nlargest(2).iloc[-1], axis=1)
-    
+    # Visualization using original data
+    fig4_histogram = px.histogram(df_original, x=x_axis, color='Cluster',
+                                labels={"Cluster": "Cluster", "Count": "Number of Constituencies"},
+                                title="Distribution of Cluster Membership by " + x_axis,
+                                hover_data=[x_axis, 'Cluster'],
+                                marginal='rug',
+                                histnorm='',
+                                nbins=30)
 
-    # fig4
-    fig4_histogram = px.histogram(df, x=x_axis, color='Cluster',
-                    labels={"Cluster": "Cluster", "Count": "Density of Cluster Membership"},
-                    title=" Distribution of Cluster Membership by " + x_axis,
-                    hover_data=[x_axis, 'Cluster'],
-                    marginal='rug',
-                    histnorm='probability density',
-                    barmode='overlay',  # Ensure bars are overlaid on one another
-                    nbins=30,  # Optionally adjust number of bins for smoother appearance
-                    histfunc='avg'  # Average to smooth out the distribution
-    )
-
-    # Update the trace to adjust opacity and line properties
-    fig4_histogram.update_traces(opacity=0.75, marker_line_width=0.5, marker_line_color='white')
     fig4_histogram.update_layout(
-        bargap=0.1,  # Adjust the gap between bars for a smoother appearance
-        plot_bgcolor="rgba(0,0,0,0)"  # Makes the background transparent
+        yaxis_title="Number of Constituencies", 
+        xaxis_title=x_axis  
     )
 
-    
-    #fig5 scatter plot
-    fig5_scatter = px.strip(df, x=x_axis, y='Dominant Party', color='Cluster', 
-            labels={"Cluster": "Cluster"},
-            title="Constituency Distribution by " + x_axis + " and Dominant Party",
-            hover_data=[x_axis, 'Dominant Party'],
-            orientation='h',  
-            stripmode='group') 
+
+    fig5_scatter = px.strip(df_original, x=x_axis, y='Dominant Party', color='Cluster',
+                            labels={"Cluster": "Cluster"},
+                            title="Constituency Distribution by " + x_axis + " and Dominant Party",
+                            hover_data=[x_axis, 'Dominant Party'],
+                            orientation='h',  
+                            stripmode='group') 
 
     # Convert plots to JSON
     graphJSON4_histogram = json.dumps(fig4_histogram, cls=plotly.utils.PlotlyJSONEncoder)
@@ -297,8 +288,9 @@ def cluster_analysis_2():
                            graphJSON4_histogram=graphJSON4_histogram, 
                            graphJSON5_scatter=graphJSON5_scatter,
                            current_x_axis=x_axis, 
-                           current_country=country)    
-    
+                           current_country=country)
+
+
     
 
 

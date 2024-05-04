@@ -1,3 +1,91 @@
+/* Reset default browser styles */
+html,
+body,
+ul,
+li,
+h1,
+h2,
+p,
+header,
+nav,
+div {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+}
+
+/* Header styles */
+header {
+  background-color: #333;
+  color: #fff;
+  padding: 10px 0;
+}
+
+#container {
+  width: 80%;
+  margin: 0 auto;
+}
+
+.logo {
+  font-size: 24px;
+}
+
+.menu {
+  list-style-type: none;
+}
+
+.menu li {
+  display: inline;
+  margin-right: 20px;
+}
+
+.menu li:last-child {
+  margin-right: 0;
+}
+
+.menu li a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.menu li a:hover {
+  text-decoration: underline;
+}
+
+/* Main content styles */
+.container {
+  width: 80%;
+  margin: 20px auto;
+}
+
+.article {
+  margin-bottom: 20px;
+}
+
+.article-title {
+  color: #333;
+  text-decoration: none;
+}
+
+.article-title:hover {
+  text-decoration: underline;
+}
+
+.article-author {
+  font-style: italic;
+  color: #777;
+}
+
+.article-content {
+  color: #555;
+}
+
 /* Base styling for the container */
 .container {
   width: 90%;
@@ -65,4 +153,34 @@ button:hover {
 /* Graph styling */
 #plot2_cluster_size {
   margin-top: 20px;
+}
+
+/* Navigation bar specific styling */
+.nav-bar {
+  background-color: #f4f4f4; /* Light grey background */
+  border-bottom: 2px solid #ccc;
+  padding: 10px 0;
+}
+
+.nav-bar .button-container {
+  display: flex;
+  justify-content: space-around; /* Distributes space evenly around items */
+  align-items: center;
+}
+
+.nav-bar button {
+  margin: 0 10px; /* Adds horizontal spacing between buttons */
+  background-color: #e7e7e7; /* Light grey background */
+  color: #333; /* Dark grey text */
+}
+
+.nav-bar .selected {
+  background-color: #4CAF50; /* Green background */
+  color: white; /* White text */
+}
+
+/* Ensure buttons have a uniform width for cleaner appearance */
+.nav-bar button {
+  min-width: 120px;
+  text-align: center;
 }
