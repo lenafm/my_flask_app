@@ -90,6 +90,8 @@ def chart_1():
 def cluster_analysis_1():
     country = request.args.get('country', default='All')
     party_filter = request.args.get('party', default='All')
+    num_rows = request.args.get('num_rows', default='10')
+
 
     query = UkData.query
     if country != 'All':
@@ -138,54 +140,60 @@ def cluster_analysis_1():
     # Compute dominant party
     party_votes = df[['Conservative', 'Labour', 'Lib Dem', 'SNP', 'Plaid Cymru', 'UKIP', 'Green', 'Brexit Party']]
     party_votes = party_votes.apply(pd.to_numeric, errors='coerce')
+
     df['Dominant Party'] = party_votes.idxmax(axis=1)
-    df['Runner Up Party'] = party_votes.apply(lambda x: x.nlargest(2).idxmin(), axis=1)
-    df['Margin of Contestation'] = party_votes.max(axis=1) - party_votes.apply(lambda x: x.nlargest(2).iloc[-1], axis=1)
+    # Compute runner-up party by removing the dominant party's votes and finding the max of the remaining
+    df['Runner Up Party'] = party_votes.apply(lambda x: x.drop(x.idxmax()).idxmax(), axis=1)
 
-    # Define party colors
-    party_colors = {
-        'Conservative': 'blue',
-        'Labour': 'red',
-        'Lib Dem': 'yellow',
-        'SNP': 'purple',
-        'Plaid Cymru': 'black',
-        'UKIP': 'Orange',
-        'Green': 'green',
-        'Brexit Party': 'pink'
-    }
+    # Compute absolute margin of contestation
+    df['Margin of Contestation (Absolute)'] = party_votes.max(axis=1) - party_votes.apply(lambda x: x.drop(x.idxmax()).max(), axis=1)
 
-    # fig 1 heatmap
-    #fig1_heatmap = px.imshow(df.pivot_table(index='Party', columns='Cluster', values='Total Vote', aggfunc='mean'),
-    #                        labels=dict(x="Cluster", y="Party", color="Mean Total Vote"),
-    #                        title="Cluster to Party Correlation Heat Map")
+    # Compute total votes per row for percentage calculation
+    df['Total Votes'] = party_votes.sum(axis=1)
 
-    
+    # Compute percentage margin of contestation
+    df['Margin of Contestation (%)'] = (df['Margin of Contestation (Absolute)'] / df['Total Votes']) * 100
+
+
     # fig 2 cluster size
+    if party_filter != 'All':
+        df = df[df['Dominant Party'] == party_filter]
+        
     cluster_sizes = df['Cluster'].value_counts().reset_index()
     cluster_sizes.columns = ['Cluster', 'Number of Constituencies']
 
     fig2_cluster_size = px.bar(cluster_sizes, x='Cluster', y='Number of Constituencies', 
-                               title=f'Number of Constituencies in {country} Characterised by a Given Sub-Population, as Won by the {party_filter} Party')
+                               title=f'Number of Constituencies in {country} predominantly characterised by given sub-population(s) - as won by the {party_filter} party')
     fig2_cluster_size.update_layout(xaxis_title='Cluster', yaxis_title='Number of Constituencies')
     
+    graphJSON2_cluster_size = json.dumps(fig2_cluster_size, cls=plotly.utils.PlotlyJSONEncoder)
+    
+    
     #fig 3 list of contested seats    
-    # Filter data based on party if the filter is not 'All'
     if party_filter != 'All':
         df = df[(df['Dominant Party'] == party_filter) | (df['Runner Up Party'] == party_filter)]
 
-    # Convert DataFrame to HTML table only displaying relevant rows
-    contested_df = df[['constituency', 'Margin of Contestation', 'Dominant Party', 'Runner Up Party', 'Cluster']]
-    table3_html = contested_df.to_html(index=False, classes='table table-striped')
-    
+    # Sorting and selecting columns
+    if num_rows != 'All':
+        try:
+            num_rows = int(num_rows)
+        except ValueError:
+            num_rows = 'All'
+        contested_df = df.sort_values('Margin of Contestation (%)').head(num_rows).iloc[::-1]
 
-    # Convert plots to JSON
-    graphJSON2_cluster_size = json.dumps(fig2_cluster_size, cls=plotly.utils.PlotlyJSONEncoder)
+    contested_df = contested_df[['constituency', 'Margin of Contestation (%)', 'Margin of Contestation (Absolute)', 'Dominant Party', 'Runner Up Party', 'Cluster']]
+    contested_df.columns = ['Constituency', 'Margin of Contestation (Absolute)', 'Margin of Contestation (%)', 'Dominant Party', 'Runner Up Party', 'Suggested Cluster to Target']
+
+    table3_html = contested_df.to_html(index=False, classes='table table-striped')
+
 
     return render_template('cluster1.html', 
+                           #graphJSON1_heatmap=graphJSON1_heatmap, 
                            graphJSON2_cluster_size=graphJSON2_cluster_size, 
                            table3_html=table3_html, 
                            current_country=country,
-                           current_party=party_filter)
+                           current_party=party_filter,
+                           current_num_rows=num_rows)
 
 
 

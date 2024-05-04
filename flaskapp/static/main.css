@@ -1,88 +1,68 @@
-/* Reset default browser styles */
-html,
-body,
-ul,
-li,
-h1,
-h2,
-p,
-header,
-nav,
-div {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: Arial, sans-serif;
-  line-height: 1.6;
-}
-
-/* Header styles */
-header {
-  background-color: #333;
-  color: #fff;
-  padding: 10px 0;
-}
-
-#container {
-  width: 80%;
-  margin: 0 auto;
-}
-
-.logo {
-  font-size: 24px;
-}
-
-.menu {
-  list-style-type: none;
-}
-
-.menu li {
-  display: inline;
-  margin-right: 20px;
-}
-
-.menu li:last-child {
-  margin-right: 0;
-}
-
-.menu li a {
-  color: #fff;
-  text-decoration: none;
-}
-
-.menu li a:hover {
-  text-decoration: underline;
-}
-
-/* Main content styles */
+/* Base styling for the container */
 .container {
-  width: 80%;
-  margin: 20px auto;
+  width: 90%;
+  margin: auto;
+  overflow: hidden;
+  font-family: 'Arial', sans-serif;
 }
 
-.article {
-  margin-bottom: 20px;
+/* Styling for buttons */
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-.article-title {
-  color: #333;
-  text-decoration: none;
+button:hover {
+  opacity: 0.8;
 }
 
-.article-title:hover {
-  text-decoration: underline;
+.selected {
+  background-color: #4CAF50; /* Green background */
+  color: white; /* White text */
 }
 
-.article-author {
-  font-style: italic;
-  color: #777;
+/* Styling for form and selection box */
+.row-selection {
+  margin: 20px 0;
 }
 
-.article-content {
-  color: #555;
+.row-selection form {
+  display: flex;
+  align-items: center;
 }
 
+.row-selection label {
+  margin-right: 10px;
+}
+
+.row-selection select {
+  padding: 5px;
+  border-radius: 5px;
+}
+
+/* Styling for tables */
+.table-container {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-top: 20px;
+  border: 1px solid #ccc;
+}
+
+.table-container table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-container th, .table-container td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+}
+
+/* Graph styling */
+#plot2_cluster_size {
+  margin-top: 20px;
+}

@@ -3,26 +3,30 @@
 {% block content %}
 <div class="container">
     <h1>Cluster Analysis</h1>
+    
+    <!-- Country Buttons -->
+    <div class="country-buttons">
+        {% for country_option in ['England', 'Scotland', 'Wales', 'All'] %}
+        <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country=country_option, party=current_party) }}'"
+                class="{{ 'selected' if country_option == current_country else '' }}">
+            {{ country_option }}
+        </button>
+        {% endfor %}
+    </div>
 
-        <!-- Country Buttons -->
-        <div class="country-buttons">
-            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country='England', party=current_party) }}'">England</button>
-            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country='Scotland', party=current_party) }}'">Scotland</button>
-            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country='Wales', party=current_party) }}'">Wales</button>
-            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country='All', party=current_party) }}'">All</button>
-        </div>
-
-        <!-- Party Buttons -->
-        <div class="party-buttons">
-            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country=current_country, party='All') }}'">All</button>
-            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country=current_country, party='Conservative') }}'">Conservative</button>
-            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country=current_country, party='Labour') }}'">Labour</button>
-            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country=current_country, party='Lib Dem') }}'">Lib Dem</button>
-            <!-- Add other parties similarly -->
-        </div>
+    <!-- Party Buttons -->
+    <div class="party-buttons">
+        {% for party_option in ['All', 'Conservative', 'Labour', 'Lib Dem', 'Green', 'UKIP', 'Brexit Party', 'Plaid Cymru', 'SNP'] %}
+        <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country=current_country, party=party_option) }}'"
+                class="{{ 'selected' if party_option == current_party else '' }}">
+            {{ party_option }}
+        </button>
+        {% endfor %}
+    </div>
     
     </div>
 
+    <h2> Significance of each cluster to each party, accross countries: </h2>
     <!-- 2) cluster size -->
     <div id="plot2_cluster_size"></div>
     <script>
@@ -30,7 +34,21 @@
         Plotly.newPlot('plot2_cluster_size', graphJSON2_cluster_size);
     </script>
 
-
+    <h2> Marginal and strategic seats to focus on: </h2>
+    <!-- Control to select number of rows -->
+    <div class="row-selection">
+        <form action="{{ url_for('cluster_analysis_1', country=current_country, party=current_party) }}" method="get">
+            <input type="hidden" name="country" value="{{ current_country }}">
+            <input type="hidden" name="party" value="{{ current_party }}">
+            <label for="num_rows">Number of rows:</label>
+            <select name="num_rows" id="num_rows" onchange="this.form.submit()">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="All">All</option>
+            </select>
+        </form>
+    </div>
     <!-- 3) tabl;e of contested constituencies -->
     <div class="table-container">
         {{ table3_html | safe }}
