@@ -2,7 +2,25 @@
 
 {% block content %}
 <div class="container">
-    <h1>Cluster Analysis</h1>
+    <h1>Cluster Analysis - in depth segmentation</h1>
+
+    <p>
+        This is the second panel visualization of a k-means clustering analysis for the 2019 UK elections. 
+        The two figures here are designed for party political campaign managers and communications officials (of any party). 
+        <br>
+        The identified clusters are as follows:
+        <br>
+        <ul>
+            <li><strong>Likely older, rural populations. </strong> Features lower population densities and higher age demographics (more retirees). Voting behavior might vary but could lean towards traditional values.</li>
+            <li><strong>Highly urban, young populations. </strong> High population density, younger demographic. Might show diverse voting behaviors with significant votes for progressive parties.</li>
+            <li><strong>Suburbanfamilies. </strong> Moderate population density, balanced age distribution, and mixed voting results. Likely a battleground for multiple parties.</li>
+            <li><strong>Specialized populations (such as university towns or industrial hubs). </strong> Could have unique characteristics like high numbers of full-time students or specific economic dependencies.</li>
+            <li><strong>Mixed rural and urban characteristics but with distinct features </strong> perhaps linked to specific local issues or demographic quirks not captured fully by the general metrics.</li>
+        </ul> 
+        <br>
+        NB: Click on the RHS keys to isolate / remove specific clusters
+    </p>
+    
 
     <!-- Country Buttons -->
     <div class="button-container">
@@ -14,7 +32,7 @@
             </button>
             {% endfor %}
         </div>
-
+    <br>
     <!-- Characteristic Buttons -->
     <div class="x-axis-buttons">
         {% for x_axis_option in ['Population Density', 'Female Pop %', 'Student Pop %', 'Retired Pop %', 'Married Pop %'] %}
@@ -24,22 +42,19 @@
         </button>
         {% endfor %}
     </div>
+    <br>
 </div>
 
-
-
-    
-
-
-    <!-- 5) Scatter Plot Visualization -->
-    <div id="plot5_scatter"></div>
+<!-- 5) Scatter Plot Visualization -->
+<div id="plot5_scatter"></div>
     <script>
         var graphJSON5_scatter = {{ graphJSON5_scatter | safe }};
         Plotly.newPlot('plot5_scatter', graphJSON5_scatter);
     </script> 
-    
-    <!-- 4) Histogram Visualization -->
-    <div id="plot4_histogram"></div>
+</div>
+
+<!-- 4) Histogram Visualization -->
+<div id="plot4_histogram"></div>
     <script>
         var graphJSON4_histogram = {{ graphJSON4_histogram | safe }};
         Plotly.newPlot('plot4_histogram', graphJSON4_histogram);
@@ -49,41 +64,26 @@
 </div>
 
 
-<p>
-TO DO :  +
-<ol>
-    <li> NOT OVERLAY</li>
-    <li> get table to filter on party</li>
-    <li> the second set of buttons wipes out the first </li>
-
-    <li> MOVE COUNTRY BUTTONS TOP RIGHT</li>
-    <li> MAKE HISTO TRANSPARENT</li>
-    <li> SORT OUT SCALES OF AXES... I THINK THIS IS IN THE PX.STRIP VS HISTOGRAM CALL...</li>
-
-Click on the keys to isolate / remove specific clusters.
-<ul>
-    <li><strong>Likely older, rural populations. </strong> Features lower population densities and higher age demographics (more retirees). Voting behavior might vary but could lean towards traditional values.</li>
-    <li><strong>Highly urban, young populations. </strong> High population density, younger demographic. Might show diverse voting behaviors with significant votes for progressive parties.</li>
-    <li><strong>Suburbanfamilies. </strong> Moderate population density, balanced age distribution, and mixed voting results. Likely a battleground for multiple parties.</li>
-    <li><strong>Specialized populations (such as university towns or industrial hubs). </strong> Could have unique characteristics like high numbers of full-time students or specific economic dependencies.</li>
-    <li><strong>Mixed rural and urban characteristics but with distinct features </strong> perhaps linked to specific local issues or demographic quirks not captured fully by the general metrics.</li>
-</ul>
-<br>
-This vizualisation of a k-means clustering analysis is useful for political campaign strategists.
-<br>
-The top panels allows strategists to both identify strength of association between cluster-identity and party-politcial preference (ie which cluster if more or less likely to vote for which party), and the size (i.e. relative significance) of each cluster.
-This information can be segmented by country.
-<br>
-The second and third panels allow for a more granular identification of demographics of the specific clusterings, so that campaign strategists might better understand the composition of these subpopulations as to target with their political messaging accordingly.
-Specifically, the second displays the distribution  ???? of each cluster according to  ????? selected characteristics, 
-The third plot further cevelops this in the form of a scatter plot in which each point represents a constituency. We can see the breakdown of how each constitutency voted in the 2019 election according to the same characteristic, coloured by cluster identity.
-This allows strategists to eyeball among which demographics their support is strongest - both according to cluster and to specific characteristic.
-<br>
-
-<ul>
-    <li> calculate the toip 10 closest constituences for each party </li>
-    <li> according to each cluster + searchable by country
-        make it 
+<div>
+    <p>Collectively, these panels offer a more nuanced understanding of the demographics of specific voting subpopulations 
+        and their relationship to constituencies' political outcomes.</p>
+    <br>
+    <p>This is intended to assist campaign strategists and political stakeholders, 
+        by providing insights for more precise targeting of political messaging by segmenting political groups.</p>
+    <br>
+    <p>By segmenting clusters based on demographic dimensions, we gain insight into the disparities between communities and their 
+        differing political preferences, even those which seem similar along a given dimension(s):
+        <br>
+        for example, constituencies with low population density represent the norm, and vote for both the conservatives and Labour.
+        However, understanding that in this constituencies with low population density, those that vote for the Conservatives primarily 
+        consist of older individuals in rural or suburban areas enables tailored messaging. 
+        Conversely, labor-voting constituencies in similarly low-population areas are almost completely devoid of older rural cluster,
+        but instead exhibit a much more diverse mix of characteristics, as well as younger voters.</p>
+    <br>
+    <p> All this allows campaigners to target their messaging accordingly.</p>
+    <br>
+    <p> These two plots show mostly similar stories, but the second is more geared towards understanding the relative sizes of the 
+        clustered constituencies (and thus their political significance), whereas the scatter plot is more geared towards how these clusters then voted.
 </p>
     
 {% endblock %}

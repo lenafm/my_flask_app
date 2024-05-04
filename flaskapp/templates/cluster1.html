@@ -2,7 +2,26 @@
 
 {% block content %}
 <div class="container">
-    <h1>Cluster Analysis</h1>
+    <h1>Cluster Analysis - broad strokes</h1>
+
+    <p>
+        This is the first panel visualization of a k-means clustering analysis for the 2019 UK elections. 
+        The two figures here are designed for party political campaign managers and communications officials (of any party). 
+        <br>
+        The identified clusters are as follows:
+        <br>
+        <ul>
+            <li><strong>Likely older, rural populations. </strong> Features lower population densities and higher age demographics (more retirees). Voting behavior might vary but could lean towards traditional values.</li>
+            <li><strong>Highly urban, young populations. </strong> High population density, younger demographic. Might show diverse voting behaviors with significant votes for progressive parties.</li>
+            <li><strong>Suburbanfamilies. </strong> Moderate population density, balanced age distribution, and mixed voting results. Likely a battleground for multiple parties.</li>
+            <li><strong>Specialized populations (such as university towns or industrial hubs). </strong> Could have unique characteristics like high numbers of full-time students or specific economic dependencies.</li>
+            <li><strong>Mixed rural and urban characteristics but with distinct features </strong> perhaps linked to specific local issues or demographic quirks not captured fully by the general metrics.</li>
+        </ul>
+        Click the country buttons to specify country 
+        <br>
+        Click on sub-category variables to analyse the constituencies according to various demographic dimensions 
+        <br>
+    </p>
     
     <!-- Country Buttons -->
     <div class="country-buttons">
@@ -58,35 +77,11 @@
 
 
 <p>
-TO DO :  +
-<ol>
-    <li> get table to filter on party</li>
-    <li> the second set of buttons wipes out the first </li>
+    The top panel: shows campaign strategists who their core constituencies are...
+    <br>
+    The bottom panel: shows campaign strategiest where they ought to be focusing their electoral efforts on, which party they should be attacking, and which cluster represents the primary voting block they need to woo.
 
-Click on the keys to isolate / remove specific clusters.
-<ul>
-    <li><strong>Likely older, rural populations. </strong> Features lower population densities and higher age demographics (more retirees). Voting behavior might vary but could lean towards traditional values.</li>
-    <li><strong>Highly urban, young populations. </strong> High population density, younger demographic. Might show diverse voting behaviors with significant votes for progressive parties.</li>
-    <li><strong>Suburbanfamilies. </strong> Moderate population density, balanced age distribution, and mixed voting results. Likely a battleground for multiple parties.</li>
-    <li><strong>Specialized populations (such as university towns or industrial hubs). </strong> Could have unique characteristics like high numbers of full-time students or specific economic dependencies.</li>
-    <li><strong>Mixed rural and urban characteristics but with distinct features </strong> perhaps linked to specific local issues or demographic quirks not captured fully by the general metrics.</li>
-</ul>
-<br>
-This vizualisation of a k-means clustering analysis is useful for political campaign strategists.
-<br>
-The top panels allows strategists to both identify strength of association between cluster-identity and party-politcial preference (ie which cluster if more or less likely to vote for which party), and the size (i.e. relative significance) of each cluster.
-This information can be segmented by country.
-<br>
-The second and third panels allow for a more granular identification of demographics of the specific clusterings, so that campaign strategists might better understand the composition of these subpopulations as to target with their political messaging accordingly.
-Specifically, the second displays the distribution  ???? of each cluster according to  ????? selected characteristics, 
-The third plot further cevelops this in the form of a scatter plot in which each point represents a constituency. We can see the breakdown of how each constitutency voted in the 2019 election according to the same characteristic, coloured by cluster identity.
-This allows strategists to eyeball among which demographics their support is strongest - both according to cluster and to specific characteristic.
-<br>
 
-<ul>
-    <li> calculate the toip 10 closest constituences for each party </li>
-    <li> according to each cluster + searchable by country
-        make it 
 </p>
     
 {% endblock %}
