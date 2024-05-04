@@ -86,19 +86,3 @@ header {
   color: #555;
 }
 
-.container {
-  position: relative;
-}
-
-.button-container {
-  position: absolute;
-  top: 0;
-  right: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.country-buttons {
-  margin-bottom: 10px; /* Adjust spacing between country and x-axis buttons */
-}

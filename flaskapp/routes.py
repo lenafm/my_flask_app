@@ -86,45 +86,36 @@ def chart_1():
     return render_template('chart_1.html', title='Far-Right/Anti-System Thinking vs Age and Wealth Across Countries', graphJSON=graphJSON)
 
 
-@app.route('/cluster_analysis', methods=['GET'])
-def cluster_analysis():
+@app.route('/cluster_analysis_1', methods=['GET'])
+def cluster_analysis_1():
     country = request.args.get('country', default='All')
-    x_axis = request.args.get('x_axis', 'Population Density')
+    party_filter = request.args.get('party', default='All')
 
     query = UkData.query
     if country != 'All':
         query = query.filter_by(country=country)
-        
-    all_columns = [
-        'id', 'constituency_name', 'country', 'region', 'Turnout19', 
-        'ConVote19', 'LabVote19', 'LDVote19', 'SNPVote19', 'PCVote19', 
-        'UKIPVote19', 'GreenVote19', 'BrexitVote19', 'TotalVote19', 
-        'c11PopulationDensity', 'c11Female', 'c11FulltimeStudent', 
-        'c11Retired', 'c11HouseOwned', 'c11HouseholdMarried'
-    ]
 
-    df = pd.DataFrame([
-        {
-            'House Ownership': item.c11HouseOwned, 
-            'Country': item.country, 
-            'Turnout': item.Turnout19,
-            'Conservative': item.ConVote19,
-            'Labour': item.LabVote19,
-            'Lib Dem': item.LDVote19,
-            'SNP': item.SNPVote19,
-            'Plaid Cymru': item.PCVote19,
-            'UKIP': item.UKIPVote19,
-            'Green': item.GreenVote19,
-            'Brexit Party': item.BrexitVote19,
-            'Total Vote': item.TotalVote19,
-            'Population Density': item.c11PopulationDensity,
-            'Female Pop %': item.c11Female,
-            'Student Pop %': item.c11FulltimeStudent,
-            'Retired Pop %': item.c11Retired,
-            'Married Pop %': item.c11HouseholdMarried
-        } for item in query.all()
-    ])
-
+    data = query.all()
+    df = pd.DataFrame([{
+        'constituency': item.constituency_name,
+        'House Ownership': item.c11HouseOwned, 
+        'Country': item.country, 
+        'Turnout': item.Turnout19,
+        'Conservative': item.ConVote19,
+        'Labour': item.LabVote19,
+        'Lib Dem': item.LDVote19,
+        'SNP': item.SNPVote19,
+        'Plaid Cymru': item.PCVote19,
+        'UKIP': item.UKIPVote19,
+        'Green': item.GreenVote19,
+        'Brexit Party': item.BrexitVote19,
+        'Total Vote': item.TotalVote19,
+        'Population Density': item.c11PopulationDensity,
+        'Female Pop %': item.c11Female,
+        'Student Pop %': item.c11FulltimeStudent,
+        'Retired Pop %': item.c11Retired,
+        'Married Pop %': item.c11HouseholdMarried
+    } for item in data])
 
     # Imputation and standardization
     numeric_cols = df.select_dtypes(include=['number']).columns
@@ -134,11 +125,22 @@ def cluster_analysis():
     # Clustering
     kmeans = KMeans(n_clusters=5, random_state=0)
     clusters = kmeans.fit_predict(df[numeric_cols])
+    cluster_labels = {
+        0: 'Older, rural',
+        1: 'Urban, young',
+        2: 'Suburban families',
+        3: 'Specialized (uni / industrial)',
+        4: 'Mixed with distinct features'
+    }
     df['Cluster'] = clusters
+    df['Cluster'] = df['Cluster'].map(cluster_labels)
 
     # Compute dominant party
     party_votes = df[['Conservative', 'Labour', 'Lib Dem', 'SNP', 'Plaid Cymru', 'UKIP', 'Green', 'Brexit Party']]
+    party_votes = party_votes.apply(pd.to_numeric, errors='coerce')
     df['Dominant Party'] = party_votes.idxmax(axis=1)
+    df['Runner Up Party'] = party_votes.apply(lambda x: x.nlargest(2).idxmin(), axis=1)
+    df['Margin of Contestation'] = party_votes.max(axis=1) - party_votes.apply(lambda x: x.nlargest(2).iloc[-1], axis=1)
 
     # Define party colors
     party_colors = {
@@ -147,110 +149,151 @@ def cluster_analysis():
         'Lib Dem': 'yellow',
         'SNP': 'purple',
         'Plaid Cymru': 'black',
-        'UKIP': 'purple',
+        'UKIP': 'Orange',
         'Green': 'green',
-        'Brexit Party': 'grey'
+        'Brexit Party': 'pink'
     }
 
-    # First plot
-    fig1 = px.strip(df, x=x_axis, y='Dominant Party', color='Cluster', 
-                labels={"Cluster": "Cluster"},
-                title="Voter Distribution by " + x_axis + " and Dominant Party",
-                hover_data=[x_axis, 'Dominant Party'],
-                orientation='h',  
-                stripmode='overlay') 
+    # fig 1 heatmap
+    #fig1_heatmap = px.imshow(df.pivot_table(index='Party', columns='Cluster', values='Total Vote', aggfunc='mean'),
+    #                        labels=dict(x="Cluster", y="Party", color="Mean Total Vote"),
+    #                        title="Cluster to Party Correlation Heat Map")
 
-    # Second plot
-    fig2 = px.strip(df, x=x_axis, y='Cluster', color='Dominant Party',
-                color_discrete_map=party_colors,
-                labels={"Dominant Party": "Dominant Party"},
-                title="Cluster Distribution by " + x_axis,
-                hover_data=[x_axis, 'Cluster'],
-                orientation='h',
-                stripmode='overlay')
+    
+    # fig 2 cluster size
+    cluster_sizes = df['Cluster'].value_counts().reset_index()
+    cluster_sizes.columns = ['Cluster', 'Number of Constituencies']
+
+    fig2_cluster_size = px.bar(cluster_sizes, x='Cluster', y='Number of Constituencies', 
+                               title=f'Number of Constituencies in {country} Characterised by a Given Sub-Population, as Won by the {party_filter} Party')
+    fig2_cluster_size.update_layout(xaxis_title='Cluster', yaxis_title='Number of Constituencies')
+    
+    #fig 3 list of contested seats    
+    # Filter data based on party if the filter is not 'All'
+    if party_filter != 'All':
+        df = df[(df['Dominant Party'] == party_filter) | (df['Runner Up Party'] == party_filter)]
+
+    # Convert DataFrame to HTML table only displaying relevant rows
+    contested_df = df[['constituency', 'Margin of Contestation', 'Dominant Party', 'Runner Up Party', 'Cluster']]
+    table3_html = contested_df.to_html(index=False, classes='table table-striped')
+    
 
     # Convert plots to JSON
-    graphJSON1 = json.dumps(fig1, cls=plotly.utils.PlotlyJSONEncoder)
-    graphJSON2 = json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+    graphJSON2_cluster_size = json.dumps(fig2_cluster_size, cls=plotly.utils.PlotlyJSONEncoder)
 
-    return render_template('cluster.html', graphJSON1=graphJSON1, graphJSON2=graphJSON2, current_x_axis=x_axis, current_country=country)
-
-
-
-
-
+    return render_template('cluster1.html', 
+                           graphJSON2_cluster_size=graphJSON2_cluster_size, 
+                           table3_html=table3_html, 
+                           current_country=country,
+                           current_party=party_filter)
 
 
-# route to choropleth
-@app.route('/choropleth')
-def choropleth():
-    return render_template('choropleth.html')
 
-@app.route('/choropleth/data', methods=['GET'])
-def get_choropleth_data():
-    try:
-        country = request.args.get('country', default=None)
-        data_type = request.args.get('type', default='vote')
 
-        # Base query
-        query = UkData.query
 
-        if country:
-            query = query.filter_by(country=country)
-        
-        if not query.first():  # check if  query returned any data
-            abort(404, description="No data available for the given country.")
 
-        if data_type == 'vote':
-            data = []
-            for item in query.all():
-                # dict of party and votes
-                vote_counts = {
-                    'Conservative': (item.ConVote19 or 0),
-                    'Labour': (item.LabVote19 or 0),
-                    'Liberal Democrat': (item.LDVote19 or 0),
-                    'SNP': (item.SNPVote19 or 0),
-                    'Plaid Cymru': (item.PCVote19 or 0),
-                    'UKIP': (item.UKIPVote19 or 0),
-                    'Green': (item.GreenVote19 or 0),
-                    'Brexit': (item.BrexitVote19 or 0)
-                }
-                
-                # compute party w/ maximum votes
-                dominant_party = max(vote_counts, key=vote_counts.get)
-                dominant_votes = vote_counts[dominant_party]
 
-                # add to data
-                data.append({
-                    'id': item.id,
-                    'name': item.constituency_name,
-                    'dominant_party': dominant_party,
-                    'value': dominant_votes
-                })
-        else:
-            attribute_map = {
-                'density': 'c11PopulationDensity',
-                'retired': 'c11Retired',
-                'home_ownership': 'c11HouseOwned',
-                'female': 'c11Female',
-            }
-            attribute = attribute_map.get(data_type)
-            if attribute is None:
-                abort(400, description="Invalid data type provided.")
-            
-            data = [{
-                'id': item.id,
-                'name': item.constituency_name,
-                'value': getattr(item, attribute)
-            } for item in query.all()]
 
-        return jsonify(data)
 
-    except Exception as e:
-        app.logger.error('Failed to fetch data: {}'.format(str(e)))
-        response = jsonify({'error': 'Internal server error', 'message': str(e)})
-        response.status_code = 500
-        return response
+
+@app.route('/cluster_analysis_2', methods=['GET'])
+def cluster_analysis_2():
+    country = request.args.get('country', default='All')
+    x_axis = request.args.get('x_axis', default='Population Density')
+
+    query = UkData.query
+    if country != 'All':
+        query = query.filter_by(country=country)
+
+    data = query.all()
+    df = pd.DataFrame([{
+        'constituency': item.constituency_name,
+        'House Ownership': item.c11HouseOwned, 
+        'Country': item.country, 
+        'Turnout': item.Turnout19,
+        'Conservative': item.ConVote19,
+        'Labour': item.LabVote19,
+        'Lib Dem': item.LDVote19,
+        'SNP': item.SNPVote19,
+        'Plaid Cymru': item.PCVote19,
+        'UKIP': item.UKIPVote19,
+        'Green': item.GreenVote19,
+        'Brexit Party': item.BrexitVote19,
+        'Total Vote': item.TotalVote19,
+        'Population Density': item.c11PopulationDensity,
+        'Female Pop %': item.c11Female,
+        'Student Pop %': item.c11FulltimeStudent,
+        'Retired Pop %': item.c11Retired,
+        'Married Pop %': item.c11HouseholdMarried
+    } for item in data])
+
+    # Imputation and standardization
+    numeric_cols = df.select_dtypes(include=['number']).columns
+    df[numeric_cols] = SimpleImputer(strategy='median').fit_transform(df[numeric_cols])
+    df[numeric_cols] = StandardScaler().fit_transform(df[numeric_cols])
+
+    # Clustering
+    kmeans = KMeans(n_clusters=5, random_state=0)
+    clusters = kmeans.fit_predict(df[numeric_cols])
+    cluster_labels = {
+        0: 'Older, rural',
+        1: 'Urban, young',
+        2: 'Suburban families',
+        3: 'Specialized (uni / industrial)',
+        4: 'Mixed with distinct features'
+    }
+    df['Cluster'] = clusters
+    df['Cluster'] = df['Cluster'].map(cluster_labels)
+
+    # Compute dominant party
+    party_votes = df[['Conservative', 'Labour', 'Lib Dem', 'SNP', 'Plaid Cymru', 'UKIP', 'Green', 'Brexit Party']]
+    party_votes = party_votes.apply(pd.to_numeric, errors='coerce')
+    df['Dominant Party'] = party_votes.idxmax(axis=1)
+    df['Runner Up Party'] = party_votes.apply(lambda x: x.nlargest(2).idxmin(), axis=1)
+    df['Margin of Contestation'] = party_votes.max(axis=1) - party_votes.apply(lambda x: x.nlargest(2).iloc[-1], axis=1)
+    
+
+    # fig4
+    fig4_histogram = px.histogram(df, x=x_axis, color='Cluster',
+                    labels={"Cluster": "Cluster", "Count": "Density of Cluster Membership"},
+                    title=" Distribution of Cluster Membership by " + x_axis,
+                    hover_data=[x_axis, 'Cluster'],
+                    marginal='rug',
+                    histnorm='probability density',
+                    barmode='overlay',  # Ensure bars are overlaid on one another
+                    nbins=30,  # Optionally adjust number of bins for smoother appearance
+                    histfunc='avg'  # Average to smooth out the distribution
+    )
+
+    # Update the trace to adjust opacity and line properties
+    fig4_histogram.update_traces(opacity=0.75, marker_line_width=0.5, marker_line_color='white')
+    fig4_histogram.update_layout(
+        bargap=0.1,  # Adjust the gap between bars for a smoother appearance
+        plot_bgcolor="rgba(0,0,0,0)"  # Makes the background transparent
+    )
+
+    
+    #fig5 scatter plot
+    fig5_scatter = px.strip(df, x=x_axis, y='Dominant Party', color='Cluster', 
+            labels={"Cluster": "Cluster"},
+            title="Constituency Distribution by " + x_axis + " and Dominant Party",
+            hover_data=[x_axis, 'Dominant Party'],
+            orientation='h',  
+            stripmode='group') 
+
+    # Convert plots to JSON
+    graphJSON4_histogram = json.dumps(fig4_histogram, cls=plotly.utils.PlotlyJSONEncoder)
+    graphJSON5_scatter = json.dumps(fig5_scatter, cls=plotly.utils.PlotlyJSONEncoder)
+
+    return render_template('cluster2.html', 
+                           graphJSON4_histogram=graphJSON4_histogram, 
+                           graphJSON5_scatter=graphJSON5_scatter,
+                           current_x_axis=x_axis, 
+                           current_country=country)    
+    
+    
+
+
 
 
 @app.before_request

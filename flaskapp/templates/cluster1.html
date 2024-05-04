@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Cluster Analysis</h1>
+
+        <!-- Country Buttons -->
+        <div class="country-buttons">
+            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country='England', party=current_party) }}'">England</button>
+            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country='Scotland', party=current_party) }}'">Scotland</button>
+            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country='Wales', party=current_party) }}'">Wales</button>
+            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country='All', party=current_party) }}'">All</button>
+        </div>
+
+        <!-- Party Buttons -->
+        <div class="party-buttons">
+            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country=current_country, party='All') }}'">All</button>
+            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country=current_country, party='Conservative') }}'">Conservative</button>
+            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country=current_country, party='Labour') }}'">Labour</button>
+            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country=current_country, party='Lib Dem') }}'">Lib Dem</button>
+            <!-- Add other parties similarly -->
+        </div>
+    
+    </div>
+
+    <!-- 2) cluster size -->
+    <div id="plot2_cluster_size"></div>
+    <script>
+        var graphJSON2_cluster_size = {{ graphJSON2_cluster_size | safe }};
+        Plotly.newPlot('plot2_cluster_size', graphJSON2_cluster_size);
+    </script>
+
+
+    <!-- 3) tabl;e of contested constituencies -->
+    <div class="table-container">
+        {{ table3_html | safe }}
+    </div>
+
+</div>
+
+
+<p>
+TO DO :  +
+<ol>
+    <li> get table to filter on party</li>
+    <li> the second set of buttons wipes out the first </li>
+
+Click on the keys to isolate / remove specific clusters.
+<ul>
+    <li><strong>Likely older, rural populations. </strong> Features lower population densities and higher age demographics (more retirees). Voting behavior might vary but could lean towards traditional values.</li>
+    <li><strong>Highly urban, young populations. </strong> High population density, younger demographic. Might show diverse voting behaviors with significant votes for progressive parties.</li>
+    <li><strong>Suburbanfamilies. </strong> Moderate population density, balanced age distribution, and mixed voting results. Likely a battleground for multiple parties.</li>
+    <li><strong>Specialized populations (such as university towns or industrial hubs). </strong> Could have unique characteristics like high numbers of full-time students or specific economic dependencies.</li>
+    <li><strong>Mixed rural and urban characteristics but with distinct features </strong> perhaps linked to specific local issues or demographic quirks not captured fully by the general metrics.</li>
+</ul>
+<br>
+This vizualisation of a k-means clustering analysis is useful for political campaign strategists.
+<br>
+The top panels allows strategists to both identify strength of association between cluster-identity and party-politcial preference (ie which cluster if more or less likely to vote for which party), and the size (i.e. relative significance) of each cluster.
+This information can be segmented by country.
+<br>
+The second and third panels allow for a more granular identification of demographics of the specific clusterings, so that campaign strategists might better understand the composition of these subpopulations as to target with their political messaging accordingly.
+Specifically, the second displays the distribution  ???? of each cluster according to  ????? selected characteristics, 
+The third plot further cevelops this in the form of a scatter plot in which each point represents a constituency. We can see the breakdown of how each constitutency voted in the 2019 election according to the same characteristic, coloured by cluster identity.
+This allows strategists to eyeball among which demographics their support is strongest - both according to cluster and to specific characteristic.
+<br>
+
+<ul>
+    <li> calculate the toip 10 closest constituences for each party </li>
+    <li> according to each cluster + searchable by country
+        make it 
+</p>
+    
+{% endblock %}
