@@ -2,86 +2,101 @@
 
 {% block content %}
 <div class="container">
-    <h1>Cluster Analysis - broad strokes</h1>
+    <div class="main-content">
+        <h1>Cluster Analysis - Broad Strokes</h1>
+        <p>
+            This is the first of two panel visualisations of a k-means clustering analysis for the 2019 UK elections. 
+            The two figures displayed below  are designed for party political campaign managers and communications officials (of any party).
+        </p>
+        <br>
+        <p>
+            Both figures respond to the country and party selection. A detailed explanation of each figure can be found below.
+        </p>
+        <br>
 
-    <p>
-        This is the first panel visualization of a k-means clustering analysis for the 2019 UK elections. 
-        The two figures here are designed for party political campaign managers and communications officials (of any party). 
+        <div class="country-buttons">
+            {% for country_option in ['England', 'Scotland', 'Wales', 'All'] %}
+            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country=country_option, party=current_party) }}'"
+                    class="{{ 'selected' if country_option == current_country else '' }}">
+                {{ country_option }}
+            </button>
+            {% endfor %}
+        </div>
+
+
+        <div class="party-buttons">
+            {% for party_option in ['All', 'Conservative', 'Labour', 'Lib Dem', 'Green', 'UKIP', 'Brexit Party', 'Plaid Cymru', 'SNP'] %}
+            <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country=current_country, party=party_option) }}'"
+                    class="{{ 'selected' if party_option == current_party else '' }}">
+                {{ party_option }}
+            </button>
+            {% endfor %}
+        <p> 
+            <br>
+            Consitutencies are grouped into  cluster membership based on their characteristics available in the data:
+        </p>
+        </div>
+
+        <h2>Significance of Each Cluster to Each Party Across Countries:</h2>
+        <div id="plot2_cluster_size"></div>
+        <script>
+            var graphJSON2_cluster_size = {{ graphJSON2_cluster_size | safe }};
+            Plotly.newPlot('plot2_cluster_size', graphJSON2_cluster_size);
+        </script>
+
+        <h2>Marginal and Strategic Seats to Focus On:</h2>
+        <div class="row-selection">
+            <form action="{{ url_for('cluster_analysis_1', country=current_country, party=current_party) }}" method="get">
+                <input type="hidden" name="country" value="{{ current_country }}">
+                <input type="hidden" name="party" value="{{ current_party }}">
+                <label for="num_rows">Number of rows:</label>
+                <select name="num_rows" id="num_rows" onchange="this.form.submit()">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="All">All</option>
+                </select>
+            </form>
+        </div>
+
+        <div class="table-container">
+            {{ table3_html | safe }}
+        </div>
         <br>
-        The identified clusters are as follows:
+        <p>
+            The intuition is to identify core sub-populations of support for each party, at both a country level and at a strategic local level.
+        </p>
         <br>
+        <p>   
+            The top figure is intended to visually quantify to party-political stakeholders who they found support from in 2019 based on selected geopgraphical criteria.
+        </p>
+        <br>
+        <p>
+            Knwoledge of key support groups from previou s elections is useful when trying to retain support of raise campaign finances.
+        </p>
+        <br>
+        <p>
+            The second figure is intended to zoom the analysis into a more granular, local level by identifying strategic constituencies for party political stakeholders, 
+            and providing useful information for them to be able to appropriately target their electoral efforts.
+        </p>
+        <br>
+        <p>
+            The identified constituencies are those that are closely contested. This provides information both as to the dominant party, and the runner up 
+            - it is useful to know who your opponent is to tailor your campaign appropriately. Similarly, it provides the majority cluster in that consituency as the target to cluster.
+            This is a rough proxy as there may be other criteria upon which you would want to target a specific sub-population, but as a general rule of thumb, at the very least you do not want to alienate the 
+            identified sub-population
+        </p>
+        <br>
+    </div>
+    <div class="sidebar">
+        <h2>Identified Clusters</h2>
         <ul>
-            <li><strong>Likely older, rural populations. </strong> Features lower population densities and higher age demographics (more retirees). Voting behavior might vary but could lean towards traditional values.</li>
-            <li><strong>Highly urban, young populations. </strong> High population density, younger demographic. Might show diverse voting behaviors with significant votes for progressive parties.</li>
-            <li><strong>Suburbanfamilies. </strong> Moderate population density, balanced age distribution, and mixed voting results. Likely a battleground for multiple parties.</li>
-            <li><strong>Specialized populations (such as university towns or industrial hubs). </strong> Could have unique characteristics like high numbers of full-time students or specific economic dependencies.</li>
-            <li><strong>Mixed rural and urban characteristics but with distinct features </strong> perhaps linked to specific local issues or demographic quirks not captured fully by the general metrics.</li>
+            <li><strong>Likely older, rural populations:</strong> Features lower population densities and higher age demographics (more retirees). Voting behavior might vary but could lean towards traditional values.</li>
+            <li><strong>Highly urban, young populations:</strong> High population density, younger demographic. Might show diverse voting behaviors with significant votes for progressive parties.</li>
+            <li><strong>Suburban families:</strong> Moderate population density, balanced age distribution, and mixed voting results. Likely a battleground for multiple parties.</li>
+            <li><strong>Specialized populations (such as university towns or industrial hubs):</strong> Could have unique characteristics like high numbers of full-time students or specific economic dependencies.</li>
+            <li><strong>Mixed rural and urban characteristics but with distinct features:</strong> Perhaps linked to specific local issues or demographic quirks not captured fully by the general metrics.</li>
         </ul>
-        Click the country buttons to specify country 
-        <br>
-        Click on sub-category variables to analyse the constituencies according to various demographic dimensions 
-        <br>
-    </p>
-    
-    <!-- Country Buttons -->
-    <div class="country-buttons">
-        {% for country_option in ['England', 'Scotland', 'Wales', 'All'] %}
-        <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country=country_option, party=current_party) }}'"
-                class="{{ 'selected' if country_option == current_country else '' }}">
-            {{ country_option }}
-        </button>
-        {% endfor %}
     </div>
-
-    <!-- Party Buttons -->
-    <div class="party-buttons">
-        {% for party_option in ['All', 'Conservative', 'Labour', 'Lib Dem', 'Green', 'UKIP', 'Brexit Party', 'Plaid Cymru', 'SNP'] %}
-        <button onclick="window.location.href='{{ url_for('cluster_analysis_1', country=current_country, party=party_option) }}'"
-                class="{{ 'selected' if party_option == current_party else '' }}">
-            {{ party_option }}
-        </button>
-        {% endfor %}
-    </div>
-    
-    </div>
-
-    <h2> Significance of each cluster to each party, accross countries: </h2>
-    <!-- 2) cluster size -->
-    <div id="plot2_cluster_size"></div>
-    <script>
-        var graphJSON2_cluster_size = {{ graphJSON2_cluster_size | safe }};
-        Plotly.newPlot('plot2_cluster_size', graphJSON2_cluster_size);
-    </script>
-
-    <h2> Marginal and strategic seats to focus on: </h2>
-    <!-- Control to select number of rows -->
-    <div class="row-selection">
-        <form action="{{ url_for('cluster_analysis_1', country=current_country, party=current_party) }}" method="get">
-            <input type="hidden" name="country" value="{{ current_country }}">
-            <input type="hidden" name="party" value="{{ current_party }}">
-            <label for="num_rows">Number of rows:</label>
-            <select name="num_rows" id="num_rows" onchange="this.form.submit()">
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="All">All</option>
-            </select>
-        </form>
-    </div>
-    <!-- 3) tabl;e of contested constituencies -->
-    <div class="table-container">
-        {{ table3_html | safe }}
-    </div>
-
 </div>
-
-
-<p>
-    The top panel: shows campaign strategists who their core constituencies are...
-    <br>
-    The bottom panel: shows campaign strategiest where they ought to be focusing their electoral efforts on, which party they should be attacking, and which cluster represents the primary voting block they need to woo.
-
-
-</p>
-    
 {% endblock %}

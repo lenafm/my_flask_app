@@ -2,27 +2,11 @@
 
 {% block content %}
 <div class="container">
-    <h1>Cluster Analysis - in depth segmentation</h1>
+    <h1>Cluster Analysis - In-depth Segmentation</h1>
 
-    <p>
-        This is the second panel visualization of a k-means clustering analysis for the 2019 UK elections. 
-        The two figures here are designed for party political campaign managers and communications officials (of any party). 
-        <br>
-        The identified clusters are as follows:
-        <br>
-        <ul>
-            <li><strong>Likely older, rural populations. </strong> Features lower population densities and higher age demographics (more retirees). Voting behavior might vary but could lean towards traditional values.</li>
-            <li><strong>Highly urban, young populations. </strong> High population density, younger demographic. Might show diverse voting behaviors with significant votes for progressive parties.</li>
-            <li><strong>Suburbanfamilies. </strong> Moderate population density, balanced age distribution, and mixed voting results. Likely a battleground for multiple parties.</li>
-            <li><strong>Specialized populations (such as university towns or industrial hubs). </strong> Could have unique characteristics like high numbers of full-time students or specific economic dependencies.</li>
-            <li><strong>Mixed rural and urban characteristics but with distinct features </strong> perhaps linked to specific local issues or demographic quirks not captured fully by the general metrics.</li>
-        </ul> 
-        <br>
-        NB: Click on the RHS keys to isolate / remove specific clusters
-    </p>
-    
+    <p> NB: Click on the RHS keys to toggle clusters </p>
+    <br>
 
-    <!-- Country Buttons -->
     <div class="button-container">
         <div class="country-buttons">
             {% for country_option in ['England', 'Scotland', 'Wales', 'All'] %}
@@ -32,8 +16,7 @@
             </button>
             {% endfor %}
         </div>
-    <br>
-    <!-- Characteristic Buttons -->
+
     <div class="x-axis-buttons">
         {% for x_axis_option in ['Population Density', 'Female Pop %', 'Student Pop %', 'Retired Pop %', 'Married Pop %'] %}
         <button onclick="window.location.href='{{ url_for('cluster_analysis_2', x_axis=x_axis_option, country=current_country) }}'"
@@ -63,27 +46,30 @@
 
 </div>
 
+<div class="container">
+    <p>I calculated both the dominant political party and cluster in each constituency based on vote share.</p>
 
-<div>
-    <p>Collectively, these panels offer a more nuanced understanding of the demographics of specific voting subpopulations 
-        and their relationship to constituencies' political outcomes.</p>
-    <br>
-    <p>This is intended to assist campaign strategists and political stakeholders, 
-        by providing insights for more precise targeting of political messaging by segmenting political groups.</p>
-    <br>
+    <p>NB: The 'Population Density' variable is presented without specific units and remains unspecified in this analysis.</p>
+
+    <br> 
+    <p>Collectively, these panels offer a more nuances understanding of the demographic characeristics of specific voter subgroups 
+        and their relationship on electoral outcomes in various constituencies. 
+
+        These insights are o aid campaign strategists and political stakeholders by providing insights for more precise targeting of political messaging by segmenting political groups.</p>
+    <br> 
     <p>By segmenting clusters based on demographic dimensions, we gain insight into the disparities between communities and their 
-        differing political preferences, even those which seem similar along a given dimension(s):
-        <br>
-        for example, constituencies with low population density represent the norm, and vote for both the conservatives and Labour.
-        However, understanding that in this constituencies with low population density, those that vote for the Conservatives primarily 
-        consist of older individuals in rural or suburban areas enables tailored messaging. 
-        Conversely, labor-voting constituencies in similarly low-population areas are almost completely devoid of older rural cluster,
-        but instead exhibit a much more diverse mix of characteristics, as well as younger voters.</p>
-    <br>
-    <p> All this allows campaigners to target their messaging accordingly.</p>
-    <br>
-    <p> These two plots show mostly similar stories, but the second is more geared towards understanding the relative sizes of the 
-        clustered constituencies (and thus their political significance), whereas the scatter plot is more geared towards how these clusters then voted.
-</p>
+        differing political preferences, even those which seem similar along a given dimension(s). For example, 
+        low population density areas *typically* show support for *both* the Conservative and Labour parties, 
+        however, this analysis reveals significant further distinctions. Constituencies favoring  Conservatives generally consist of older 
+        populations in rural or suburban settings. In contrast, Labour-leaning constituencies in areas of similar population density are characterized 
+        by a more diverse demographic profile, including a higher proportion of younger voters.</p>
+    <br> 
+    <p>This segmentation enables campaigners to tailor their communications effectively, ensuring that messaging resonates with the intended audience.</p>
+    <br> 
+    <p>The presented visualizations convey complementary perspectives. 
+        The scatter plot is geared towards how the clusters voted, providing strategic insights into electoral behavior.
+        The second plot then visualises the distribution and size of each cluster, highlighting their political salience. 
+    </p>
+</div>
     
 {% endblock %}

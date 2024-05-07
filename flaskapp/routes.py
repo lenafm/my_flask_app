@@ -61,36 +61,16 @@ def dashboard():
 # route to db just to see what's in there
 @app.route('/data')
 def data():
-    data = UkData.query.limit(20).all()  
+    data = UkData.query.limit(30).all()  
     mapper = inspect(UkData)
     var_name = [column.key for column in mapper.columns]
     return render_template('data_table.html', data=data)
-
-
-@app.route('/chart_1')
-def chart_1():
-    query_results = UkData.query.all()
-    df = pd.DataFrame([{
-        'House Ownership': item.c11HouseOwned, 
-        'Country': item.country, 
-        'Turnout': item.Turnout19
-        } for item in query_results])
-
-    fig = px.scatter(df, x='House Ownership', color = 'Country', labels={
-        "Turnout": "Turnout 2019",
-        "House Ownership": "House Ownership (%)"
-        }, title='Far-Right/Anti-System Thinking vs Age and Wealth Across Countries')
-
-    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-    
-    return render_template('chart_1.html', title='Far-Right/Anti-System Thinking vs Age and Wealth Across Countries', graphJSON=graphJSON)
-
 
 @app.route('/cluster_analysis_1', methods=['GET'])
 def cluster_analysis_1():
     country = request.args.get('country', default='All')
     party_filter = request.args.get('party', default='All')
-    num_rows = request.args.get('num_rows', default='10')
+    num_rows = request.args.get('num_rows', default='5')
 
 
     query = UkData.query
@@ -131,7 +111,7 @@ def cluster_analysis_1():
         0: 'Older, rural',
         1: 'Urban, young',
         2: 'Suburban families',
-        3: 'Specialized (uni / industrial)',
+        3: 'Specialised (uni / industrial)',
         4: 'Mixed with distinct features'
     }
     df['Cluster'] = clusters
@@ -161,10 +141,18 @@ def cluster_analysis_1():
         
     cluster_sizes = df['Cluster'].value_counts().reset_index()
     cluster_sizes.columns = ['Cluster', 'Number of Constituencies']
-
     fig2_cluster_size = px.bar(cluster_sizes, x='Cluster', y='Number of Constituencies', 
-                               title=f'Number of Constituencies in {country} predominantly characterised by given sub-population(s) - as won by the {party_filter} party')
-    fig2_cluster_size.update_layout(xaxis_title='Cluster', yaxis_title='Number of Constituencies')
+                            title=f'Number of Constituencies in {country} Predominantly Characterised by Given sub-Population(s) - as won by the {party_filter} party')
+
+    fig2_cluster_size.update_layout(
+        title={
+            'text': f'Distribution of Constituencies in {country} by Cluster<br>Affiliated with the {party_filter} Party',
+            'x': 0.5,  # Centers the title
+            'xanchor': 'center'
+        },
+        xaxis_title='Cluster Membership',
+        yaxis_title='Number of Constituencies'
+    )
     
     graphJSON2_cluster_size = json.dumps(fig2_cluster_size, cls=plotly.utils.PlotlyJSONEncoder)
     
@@ -194,14 +182,6 @@ def cluster_analysis_1():
                            current_country=country,
                            current_party=party_filter,
                            current_num_rows=num_rows)
-
-
-
-
-
-
-
-
 
 
 @app.route('/cluster_analysis_2', methods=['GET'])
@@ -251,17 +231,17 @@ def cluster_analysis_2():
         0: 'Older, rural',
         1: 'Urban, young',
         2: 'Suburban families',
-        3: 'Specialized (uni / industrial)',
+        3: 'Specialised (uni / industrial)',
         4: 'Mixed with distinct features'
     }
     df['Cluster'] = clusters
     df['Cluster'] = df['Cluster'].map(cluster_labels)
-    df_original['Cluster'] = df['Cluster']  # Add cluster labels to original data for visualization
+    df_original['Cluster'] = df['Cluster']  
 
     # Visualization using original data
     fig4_histogram = px.histogram(df_original, x=x_axis, color='Cluster',
-                                labels={"Cluster": "Cluster", "Count": "Number of Constituencies"},
-                                title="Distribution of Cluster Membership by " + x_axis,
+                                labels={"Cluster": "Cluster ", "Count": "Number of Constituencies"},
+                                title=country + "'s Distribution of Cluster Membership Across " + x_axis,
                                 hover_data=[x_axis, 'Cluster'],
                                 marginal='rug',
                                 histnorm='',
@@ -275,12 +255,14 @@ def cluster_analysis_2():
 
     fig5_scatter = px.strip(df_original, x=x_axis, y='Dominant Party', color='Cluster',
                             labels={"Cluster": "Cluster"},
-                            title="Constituency Distribution by " + x_axis + " and Dominant Party",
+                            title= country + "'s Distribution of Constituencies Across " + x_axis + " (Segmented by Dominant Party)",
                             hover_data=[x_axis, 'Dominant Party'],
                             orientation='h',  
                             stripmode='group') 
+    fig5_scatter.update_layout(
+        yaxis_title='Constituency\'s Dominant Party'
+    )
 
-    # Convert plots to JSON
     graphJSON4_histogram = json.dumps(fig4_histogram, cls=plotly.utils.PlotlyJSONEncoder)
     graphJSON5_scatter = json.dumps(fig5_scatter, cls=plotly.utils.PlotlyJSONEncoder)
 
@@ -289,9 +271,6 @@ def cluster_analysis_2():
                            graphJSON5_scatter=graphJSON5_scatter,
                            current_x_axis=x_axis, 
                            current_country=country)
-
-
-    
 
 
 
