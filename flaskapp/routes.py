@@ -76,8 +76,8 @@ def cluster_analysis_1():
     query = UkData.query
     if country != 'All':
         query = query.filter_by(country=country)
-
     data = query.all()
+    
     df = pd.DataFrame([{
         'constituency': item.constituency_name,
         'House Ownership': item.c11HouseOwned, 
@@ -99,10 +99,9 @@ def cluster_analysis_1():
         'Married Pop %': item.c11HouseholdMarried
     } for item in data])
 
-    # Imputation and standardization
+    # Imputation 
     numeric_cols = df.select_dtypes(include=['number']).columns
     df[numeric_cols] = SimpleImputer(strategy='median').fit_transform(df[numeric_cols])
-    df[numeric_cols] = StandardScaler().fit_transform(df[numeric_cols])
 
     # Clustering
     kmeans = KMeans(n_clusters=5, random_state=0)
@@ -126,13 +125,15 @@ def cluster_analysis_1():
     df['Runner Up Party'] = party_votes.apply(lambda x: x.drop(x.idxmax()).idxmax(), axis=1)
 
     # Compute absolute margin of contestation
-    df['Margin of Contestation (Absolute)'] = party_votes.max(axis=1) - party_votes.apply(lambda x: x.drop(x.idxmax()).max(), axis=1)
+    df['Margin of Contestation (Absolute)'] = (party_votes.max(axis=1) - 
+                                            party_votes.apply(lambda x: x.drop(x.idxmax()).max(), axis=1)).astype(int)
 
     # Compute total votes per row for percentage calculation
     df['Total Votes'] = party_votes.sum(axis=1)
 
     # Compute percentage margin of contestation
-    df['Margin of Contestation (%)'] = (df['Margin of Contestation (Absolute)'] / df['Total Votes']) * 100
+    df['Margin of Contestation (%)'] = ((df['Margin of Contestation (Absolute)'] / df['Total Votes']) * 100).round(3)
+
 
 
     # fig 2 cluster size
@@ -146,8 +147,8 @@ def cluster_analysis_1():
 
     fig2_cluster_size.update_layout(
         title={
-            'text': f'Distribution of Constituencies in {country} by Cluster<br>Affiliated with the {party_filter} Party',
-            'x': 0.5,  # Centers the title
+            'text': f'Distribution of Constituencies in {country} by Cluster<br> (affiliated with the {party_filter} party)',
+            'x': 0.5,  
             'xanchor': 'center'
         },
         xaxis_title='Cluster Membership',
@@ -167,10 +168,10 @@ def cluster_analysis_1():
             num_rows = int(num_rows)
         except ValueError:
             num_rows = 'All'
-        contested_df = df.sort_values('Margin of Contestation (%)').head(num_rows).iloc[::-1]
+        contested_df = df.sort_values('Margin of Contestation (%)').head(num_rows).iloc[::1]
 
-    contested_df = contested_df[['constituency', 'Margin of Contestation (Absolute)', 'Margin of Contestation (%)', 'Dominant Party', 'Runner Up Party', 'Cluster']]
-    contested_df.columns = ['Constituency', 'Margin of Contestation (%)',  'Margin of Contestation (Absolute)', 'Dominant Party', 'Runner Up Party', 'Suggested Cluster to Target']
+    contested_df = contested_df[['constituency', 'Margin of Contestation (%)', 'Margin of Contestation (Absolute)', 'Dominant Party', 'Runner Up Party', 'Cluster']]
+    contested_df.columns = ['Constituency', 'Margin of Contestation (vote %)',  'Margin of Contestation (absolute votes)', 'Dominant Party', 'Runner Up Party', 'Suggested Cluster to Target']
 
     table3_html = contested_df.to_html(index=False, classes='table table-striped')
 
@@ -182,6 +183,31 @@ def cluster_analysis_1():
                            current_country=country,
                            current_party=party_filter,
                            current_num_rows=num_rows)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 @app.route('/cluster_analysis_2', methods=['GET'])

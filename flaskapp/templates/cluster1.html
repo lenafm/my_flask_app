@@ -10,7 +10,7 @@
         </p>
         <br>
         <p>
-            Both figures respond to the country and party selection. A detailed explanation of each figure can be found below.
+            Both figures respond to the country and party selection. A detailed explanation of each figure and the clustering analysis can be found below.
         </p>
         <br>
 
@@ -33,16 +33,17 @@
             {% endfor %}
         <p> 
             <br>
-            Consitutencies are grouped into  cluster membership based on their characteristics available in the data:
+            Consitutencies are grouped into cluster membership based on their characteristics available in the data:
         </p>
         </div>
 
-        <h2>Significance of Each Cluster to Each Party Across Countries:</h2>
+        <h2>Political Salience of Clusters (by country, by party) :</h2>
         <div id="plot2_cluster_size"></div>
         <script>
             var graphJSON2_cluster_size = {{ graphJSON2_cluster_size | safe }};
             Plotly.newPlot('plot2_cluster_size', graphJSON2_cluster_size);
         </script>
+        <br>
 
         <h2>Marginal and Strategic Seats to Focus On:</h2>
         <div class="row-selection">
@@ -51,10 +52,12 @@
                 <input type="hidden" name="party" value="{{ current_party }}">
                 <label for="num_rows">Number of rows:</label>
                 <select name="num_rows" id="num_rows" onchange="this.form.submit()">
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                    <option value="20">20</option>
-                    <option value="All">All</option>
+                    <option value="5" {% if current_num_rows == 5 %}selected{% endif %}>5</option>
+                    <option value="10" {% if current_num_rows == 10 %}selected{% endif %}>10</option>
+                    <option value="20" {% if current_num_rows == 20 %}selected{% endif %}>20</option>
+                    <option value="50" {% if current_num_rows == 50 %}selected{% endif %}>50</option>
+                    <option value="100" {% if current_num_rows == 100 %}selected{% endif %}>100</option>
+
                 </select>
             </form>
         </div>
