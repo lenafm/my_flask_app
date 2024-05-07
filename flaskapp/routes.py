@@ -183,30 +183,6 @@ def cluster_analysis_1():
                            current_country=country,
                            current_party=party_filter,
                            current_num_rows=num_rows)
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
