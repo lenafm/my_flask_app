@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h1>{{ title }}</h1>
+    <p> This is for a report for a local conservative Party official who is keen on enhancing voter engagement strategies within their region. They're particularly interested in understanding how demographic factors influence conservative voting behavior to better tailor their communication and policy efforts. The key for them is to identify trends and correlations between voter demographics such as the age distribution (especially retirees) and political leanings toward the Conservative party. The data presented aims to highlight regions where certain demographic traits significantly influence voting patterns. This insight is crucial for developing targeted campaigns, allocating resources more effectively, and ultimately, formulating policies that resonate well with the local populace. These visualizations serve as a tool to facilitate data-driven decision-making in political strategy and public engagement initiatives. </p>
+    <div id="plot"></div>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script>
+        var figures = {{ graphJSON | safe }};
+        Plotly.newPlot('plot', figures.data, figures.layout);
+    </script>
+{% endblock %}
