@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, url_for, request
 from flaskapp import app, db
-from flaskapp.models import BlogPost, IpView, Day
+from flaskapp.models import BlogPost, IpView, Day, UkData
 from flaskapp.forms import PostForm
 import datetime
 
@@ -71,3 +71,75 @@ def before_request_func():
         db.session.add(ip_view)  # insert into the ip_view table
 
     db.session.commit()  # commit all the changes to the database
+
+
+@app.route('/uk-data-viz')
+@app.route('/uk-data-viz/<country_name>')
+def uk_data_viz(country_name = None):
+    if country_name:
+        test = UkData.query.filter_by(country = country_name)
+        title = f'Demographics and Vote Share of Labor in {country_name}'
+    else:
+        title = 'Demographics and Vote Share of Labor'
+        test = UkData.query.all()
+    df = pd.DataFrame([{'TotalVotes': row.TotalVote19,
+                        'PopDensity': row.c11PopulationDensity,
+                        'LaborVotes': row.LabVote19,
+                        'PercentStudent': row.c11FulltimeStudent,
+                        'PercentTurnout': row.Turnout19}
+                        for row in test])
+    df['PercentLabor'] = df['LaborVotes'] / df['TotalVotes']
+    df['PercentStudent'] = df['PercentStudent'] / 100
+    fig1 = px.scatter(df, x='PopDensity', y='PercentLabor',
+                      title = 'Labor Support is Positively Correlated with Population Density',
+                      labels = {'PopDensity': 'Population Density',
+                                'PercentLabor': 'Vote Share of Labor'})
+    fig1.update_yaxes(range=[0, 1])
+    fig1.update_yaxes(tickformat=".0%")
+    fig1.update_layout({
+        'plot_bgcolor': 'rgba(0,0,0,0)',
+        'paper_bgcolor': 'white',
+        'xaxis': {
+            'showgrid': True,            
+            'gridcolor': 'lightgrey',
+            'gridwidth': 1,           
+            'zerolinecolor': 'lightgrey',
+            'linecolor': 'black', 
+        },
+        'yaxis': {
+            'showgrid': True,
+            'gridcolor': 'lightgrey',
+            'gridwidth': 1,
+            'zerolinecolor': 'lightgrey',
+            'linecolor': 'black',
+        }
+    })
+    graph1JSON = json.dumps(fig1, cls=plotly.utils.PlotlyJSONEncoder)
+    fig2 = px.scatter(df, x='PercentStudent', y='PercentLabor',
+                      title = 'Labor Support is Positively Correlated with Student Status',
+                      labels = {'PercentStudent': 'Percent of Full-Time Students in Constituency',
+                                'PercentLabor': 'Vote Share of Labor'})
+    fig2.update_xaxes(range=[0, 0.5])
+    fig2.update_xaxes(tickformat=".0%")
+    fig2.update_yaxes(range=[0, 1])
+    fig2.update_yaxes(tickformat=".0%")
+    fig2.update_layout({
+        'plot_bgcolor': 'rgba(0,0,0,0)',
+        'paper_bgcolor': 'white',
+        'xaxis': {
+            'showgrid': True,            
+            'gridcolor': 'lightgrey',
+            'gridwidth': 1,           
+            'zerolinecolor': 'lightgrey',
+            'linecolor': 'black', 
+        },
+        'yaxis': {
+            'showgrid': True,
+            'gridcolor': 'lightgrey',
+            'gridwidth': 1,
+            'zerolinecolor': 'lightgrey',
+            'linecolor': 'black',
+        }
+    })
+    graph2JSON = json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+    return render_template('uk-viz.html', title=title, graph1JSON=graph1JSON, graph2JSON=graph2JSON)
