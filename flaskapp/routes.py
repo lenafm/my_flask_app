@@ -1,13 +1,14 @@
 from flask import render_template, flash, redirect, url_for, request
 from flaskapp import app, db
-from flaskapp.models import BlogPost, IpView, Day
+from flaskapp.models import BlogPost, IpView, Day, UkData
 from flaskapp.forms import PostForm
 import datetime
-
+import numpy as np
 import pandas as pd
 import json
 import plotly
 import plotly.express as px
+import plotly.graph_objects as go
 
 
 # Route for the home page, which is where the blog posts will be shown
@@ -48,6 +49,84 @@ def dashboard():
 
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template('dashboard.html', title='Page views per day', graphJSON=graphJSON)
+
+
+def safe_divide(numerator, denominator):
+    """Safely divide two numbers, handling None values."""
+    if numerator is None or denominator is None or denominator == 0:
+        return 0
+    else:
+        return numerator / denominator * 100
+
+@app.route('/correlation_heatmap')
+def correlation_heatmap():
+    # Query data from the database
+    data = UkData.query.all()
+    df = pd.DataFrame([{
+        'Conservative_Vote%': (entry.ConVote19 / entry.TotalVote19 * 100) if entry.TotalVote19 and entry.ConVote19 is not None else 0,
+        'Turnout': entry.Turnout19 if entry.Turnout19 is not None else 0,
+        'Population_Density': entry.c11PopulationDensity if entry.c11PopulationDensity is not None else 0,
+        'Percentage_Retired': entry.c11Retired if entry.c11Retired is not None else 0,
+        'Female%': entry.c11Female if entry.c11Female is not None else 0,
+        'Fulltime_Student%': entry.c11FulltimeStudent if entry.c11FulltimeStudent is not None else 0,
+        'Retired%': entry.c11Retired if entry.c11Retired is not None else 0,
+        'House_Owned%': entry.c11HouseOwned if entry.c11HouseOwned is not None else 0,
+        'Household_Married%': entry.c11HouseholdMarried if entry.c11HouseholdMarried is not None else 0
+    } for entry in data])
+
+    # Data cleaning
+    df['Turnout'] = pd.to_numeric(df['Turnout'], errors='coerce')
+    df.dropna(inplace=True)
+
+    corr_matrix = df.corr()
+
+    # Create a heatmap
+    fig = px.imshow(corr_matrix, text_auto=True, labels=dict(color="Correlation Coefficient"),
+                    title="Correlation Matrix of Census Data and Conservative Vote Share Data",)
+    
+    fig.update_layout(
+        xaxis=dict(tickangle=-45),
+        yaxis=dict(tickmode='linear'),
+        coloraxis_colorbar=dict(title="Correlation Coefficient"),
+        margin=dict(l=10, r=10, t=50, b=20)
+    )
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+    return render_template('plot.html', title='Correlation Heatmap', graphJSON=graphJSON)
+
+
+
+
+@app.route('/conservative_vs_retired_scatter')
+def conservative_vs_retired_scatter():
+    # Query data from the database
+    data = UkData.query.all()
+    df = pd.DataFrame([{
+        'Region': entry.region,
+        'ConstituencyName': entry.constituency_name,
+        'ConVotePct': (entry.ConVote19 / entry.TotalVote19 * 100) if entry.TotalVote19 and entry.ConVote19 is not None else 0,
+        'PercentageRetired': entry.c11Retired if entry.c11Retired is not None else 0
+    } for entry in data])
+
+    # Create a scatter plot
+    fig = px.scatter(df, x='PercentageRetired', y='ConVotePct',
+                     labels={
+                         'ConVotePct': 'Conservative Vote Share (%)',
+                         'PercentageRetired': 'Percentage of Retired People (%)'
+                     },
+                     title='Conservative Vote Share vs. Percentage of Retired People',
+                     hover_data=['ConstituencyName'],  
+                     color= 'Region')
+    
+
+    fig.update_layout(
+        xaxis_title="Percentage of Retired People (%)",
+        yaxis_title="Conservative Vote Share (%)",
+        height=600
+    )
+
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+    return render_template('plot.html', title='Scatter Plot: Vote Share vs. Retired Percentage', graphJSON=graphJSON)
 
 
 @app.before_request
