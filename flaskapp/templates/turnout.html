@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Voter Turnout</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Voter Turnout by Region and Political Party</h1>
+    <div id="plot"></div>
+    <p>Welcome to the Region Demographics Viewer. This interactive chart displays voting data across different regions. You can select or deselect parties from the legend to customize the view according to your preferences.</p>
+    <script>
+        var plot_data = {{ graphJSON | safe }};
+        Plotly.newPlot('plot', plot_data.data, plot_data.layout);
+    </script>
+</body>
+</html>             
+{% endblock %}

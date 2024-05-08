@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Regional Voter Turnout</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Regional Voter Turnout Comparison</h1>
+    <div id="plot"></div>
+    <script>
+        var plots = {{ plot|safe }};
+        Plotly.newPlot('plot', plots.data, plots.layout);
+    </script>
+</body>
+</html>

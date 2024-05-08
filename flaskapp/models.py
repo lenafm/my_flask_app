@@ -66,3 +66,4 @@ class UkData(db.Model):
     c11Retired = db.Column(db.Float, nullable=False)  # UK census 2011 - percentage of population who are retired
     c11HouseOwned = db.Column(db.Float, nullable=False)  # UK census 2011 - percentage of population who own their home
     c11HouseholdMarried = db.Column(db.Float, nullable=False)  # UK census 2011 - percentage of pop who are married
+
