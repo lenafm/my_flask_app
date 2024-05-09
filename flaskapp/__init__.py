@@ -1,5 +1,14 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, render_template, Response
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+import io
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+from flask_sqlalchemy import SQLAlchemy
+
 
 # Creating your flaskapp instance
 app = Flask(__name__, instance_relative_config=True)

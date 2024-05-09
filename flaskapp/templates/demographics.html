@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Region Demographics</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Region Demographics</h1>
+    <div id="plot"></div>
+    <p>Welcome to the Region Demographics Viewer. You can view the profile for other regions by modifying the URL with /demographics/"Region of choice". Regions like South East can be handled with a dash - "south-east".</p>
+    <script>
+        var plot_data = {{ graphJSON | safe }};
+        Plotly.newPlot('plot', plot_data.data, plot_data.layout);
+    </script>
+</body>
+</html>
+{% endblock %}
+
